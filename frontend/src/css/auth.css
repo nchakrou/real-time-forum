@@ -1,57 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Short+Stack&display=swap');
+
+:root {
+    /* Background */
+    --bg-main: #05010F;
+    --bg-deep: #0B0620;
+    --bg-card-top: rgba(26, 15, 61, 0.5);
+    --bg-card-bottom: #140A33;
+
+    /* Neon Purple */
+    --purple-main: #7C3AED;
+    --purple-light: #8B5CF6;
+    --purple-glow: #A855F7;
+    --purple-outer: #C084FC;
+
+    /* Neon Blue */
+    --blue-main: #22D3EE;
+    --blue-light: #38BDF8;
+
+    /* Text */
+    --text-main: #FFFFFF;
+    --text-secondary: #C7C7D1;
+    --text-muted: #9CA3AF;
+
+    /* Inputs */
+    --input-bg: rgba(255, 255, 255, 0.05);
+    --input-border: rgba(168, 85, 247, 0.35);
+}
+
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+body {
+    min-height: 100vh;
+    background-color: var(--bg-main);
+    background-image: url("../assets/backround.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-main);
+}
 
 
 .app {
-    display: flex;
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    padding: 30px 40px;
-    background: rgba(255, 255, 255, 0.17);
-    backdrop-filter: blur(15px);
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    color: #000;
+
+    padding: 40px 45px;
+    display: flex;
+    gap: 30px;
+
+    width: 450px;
+    min-height: 700px;
+    justify-content: center;
+    align-items: center;
+
+    background: linear-gradient(180deg,
+            var(--bg-card-top),
+            var(--bg-deep));
+
+    border-radius: 24px;
+    border: 1px solid var(--purple-light);
+
+    box-shadow:
+        0 0 15px rgba(188, 55, 255, 0.4),
+        0 0 30px rgba(188, 55, 255, 0.2),
+        inset 0 0 15px rgba(188, 55, 255, 0.3);
+
+    backdrop-filter: blur(18px);
     text-align: center;
-    gap: 20px;
 }
-.login , .register {
+
+
+.login,
+.register {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 22px;
 }
+
+h2 {
+    font-family: "Archivo Black", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+p {
+    font-family: "Short Stack", cursive;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
 form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-}
-input, select {
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    outline:color-mix(in hsl shorter hue, color percentage, color percentage);
-
-}
-.auth-button{
-    padding: 10px;
-    border-radius: 5px;
-    border: none;
-    background-color: #746ec0;
-    color: white;
-    font-size: 16px;
-}
-option{
-    font-size: 16px;
-    background-color: rgb(226, 224, 224);
-    border-radius: 5px;
-    padding: 10px;
+    gap: 16px;
 }
 
+input,
+select {
+    width: 100%;
+    padding: 12px 14px;
+
+    background: var(--input-bg);
+    color: var(--text-main);
+
+    border-radius: 10px;
+    border: 1px solid transparent;
+    outline: none;
+
+    font-size: 15px;
+
+    transition:
+        border 0.25s ease,
+        box-shadow 0.25s ease,
+        background 0.25s ease;
+}
+
+
+
+input:focus,
+select:focus {
+    border: 1px solid var(--purple-glow);
+    box-shadow: 0 0 18px rgba(168, 85, 247, 0.8);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.fullname {
+    display: flex;
+    gap: 12px;
+}
+
+
+a {
+    color: var(--blue-light);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+button {
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: none;
+    color: #ffffff;
+    background: #4e008a;
+    background: linear-gradient(90deg, rgba(78, 0, 138, 1) 0%, rgba(43, 0, 102, 1) 51%, rgba(44, 0, 140, 1) 99%);
+}

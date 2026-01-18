@@ -1,36 +1,35 @@
-const loginPage = `<div class="login">
+const loginPage = `
+<div class ="app">
+<div class="login">
+<img src="/src/assets/logo.png" 
+ style="width: 100px; margin: 0 auto;">
   <h2>Login</h2>
+  <p>Welcome back, please enter your details to login</p>
   <form id="login-form">
-    <label for="nickname">Nickname or Email:</label>
-    <input type="text" id="username" name="nickname" required />
-    
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password" required />
+    <input type="text" id="username" placeholder = "Nickname or Email" required />
+    <input type="password" id="password" placeholder = "Password" required />
     <button type="submit">Login</button>
     <p id = "error" style = "display:none"></p>
     <label for="register">Don't have an account?</label>
     <a href="/register">Register</a>
   </form>
+</div>
 </div>`;
 const registerPage = `
   <div class ="app">
-    <div class = "imgbox">
-      <img src="src/assets/forum.png" alt="Forum Image" />
-    </div>
 <div class="register">
-  <h2>Register</h2>
-  <div class="message">
-    Already have an account?
-  <a href="/login">login</a>
-    </div>
-  <p>Please fill this form to create an account.</p>
+<img src="/src/assets/logo.png" 
+ style="width: 100px; margin: 0 auto;">
+  <h2>Create Account</h2>
+  
+  <p>Sing Up to get started</p>
   <form id="register-form">
   <div id = fullname class = "fullname">
     <input type="text" id="firstname" name="firstname" placeholder="First Name" required maxlength="20" />
     <input type="text" id="lastname" name="lastname" placeholder="Last Name" required maxlength="20"/>
   </div>
     <input type="text" id="nickname" name="nickname" placeholder="Nickname" required />
-    <input type="number" id="age" name="age" placeholder="Age" required />
+    <input type="text" id="age" name="age" placeholder="Age" required />
 
     <input type="email" id="email" name="email" placeholder="Email" required />
     <input type="password" id="password" name="password" placeholder="Password" required />
@@ -38,6 +37,10 @@ const registerPage = `
       <option value="male">Male</option>
       <option value="female">Female</option>
     </select>
+    <div class="message">
+    Already have an account?
+  <a href="/login">login</a>
+    </div>
     <button class = "auth-button"type="submit">Register</button>
   </form>
 </div>
@@ -49,7 +52,7 @@ const forumPage = `<div class="forum-page">
 </div>`;
 function navigateTo(path) {
   if (path === "/register") {
-      document.body.innerHTML = registerPage;
+    document.body.innerHTML = registerPage;
   } else if (path === "/") {
     document.body.innerHTML = loginPage;
   } else if (path === "/forum") {
