@@ -1,5 +1,5 @@
 const loginPage = `
-<div class ="app">
+<div class ="app-auth">
 <div class="login">
 <img src="/src/assets/logo.png" 
  style="width: 100px; margin: 0 auto;">
@@ -16,7 +16,7 @@ const loginPage = `
 </div>
 </div>`;
 const registerPage = `
-  <div class ="app">
+  <div class ="app-auth">
 <div class="register">
 <img src="/src/assets/logo.png" 
  style="width: 100px; margin: 0 auto;">
@@ -24,7 +24,7 @@ const registerPage = `
   
   <p>Sing Up to get started</p>
   <form id="register-form">
-  <div id = fullname class = "fullname">
+  <div id = fullname class = "fullname-auth">
     <input type="text" id="firstname" name="firstname" placeholder="First Name" required maxlength="20" />
     <input type="text" id="lastname" name="lastname" placeholder="Last Name" required maxlength="20"/>
   </div>
@@ -46,17 +46,46 @@ const registerPage = `
 </div>
 
 </div>`;
-const forumPage = `<div class="forum-page">
-  <h2>Forum</h2>
-  <div id="posts"></div>
-</div>`;
+const homePage = `
+<header>
+<h2>Forum</h2>
+<div>
+<button>Create Post</button>
+  <button>created posts</button>
+  <button>liked posts</button>
+  <button>logout</button>
+</div>
+</header>
+<div class = "app-home">
+<div class = "categories">
+  <h2>Categories</h2>
+  <ul class="list-categories">
+  <li>FPS</li>
+  <li>Battle Royale</li>
+  <li>MOBA</li>
+  <li>Esports</li>
+  <li>RPG</li>
+  <li>Strategy</li>
+  <li>Simulation</li>
+  </ul>
+</div>
+<div class = "posts">
+  <h2>Posts</h2>
+  <p>No posts yet</p>
+</div>
+<div class = "users">
+  <h2>Users</h2>
+  <p>No users yet</p>
+</div>
+</div>
+`
 function navigateTo(path) {
   if (path === "/register") {
     document.body.innerHTML = registerPage;
   } else if (path === "/") {
     document.body.innerHTML = loginPage;
-  } else if (path === "/forum") {
-    document.body.innerHTML = "<h1>Welcome to the Forum!</h1>";
+  } else if (path === "/home") {
+    document.body.innerHTML = homePage;
   }
 }
 navigateTo(window.location.pathname);
@@ -76,8 +105,8 @@ document
     const response = await fetch("/check", request);
 
     if (response.ok) {
-      history.pushState({}, "", "/forum");
-      navigateTo("/forum");
+      history.pushState({}, "", "/home");
+      navigateTo("/home");
     } else {
       const errorElement = document.getElementById("error");
       errorElement.style.display = "block";

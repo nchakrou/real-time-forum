@@ -1,0 +1,117 @@
+@import "./auth.css";
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    background-color: var(--bg-card-top);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 12px 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    align-items: center;
+}
+
+header h2 {
+    font-family: "Archivo Black", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 40px;
+    background: linear-gradient(90deg, #A855F7, #6366F1);
+    background-clip: text;
+    -webkit-text-fill-color: transparent
+}
+
+.app-home {
+    margin: 12px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.categories {
+    height: 100vh;
+    width: 25%;
+    background: linear-gradient(
+        180deg,
+        rgba(26, 15, 61, 0.65),
+        rgba(15, 5, 41, 0.35)
+    );
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(124, 58, 237, 0.15);
+    border-radius: 16px;
+    padding: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.categories h2 {
+    text-align: center;
+    font-size: 28px;
+
+}
+
+.list-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+}
+
+.list-categories li {
+    padding: 12px;
+    background-color: rgba(79, 70, 229, 0.12);
+    border-radius: 12px;
+    border: 1px solid rgba(79, 70, 229, 0.2);
+}
+
+.like {
+    display: block;
+
+}
+
+.like span {
+    opacity: 0;
+}
+
+.like:hover span {
+    opacity: 1;
+}
+
+.list-categories li:hover {
+    background-color: var(--purple-main);
+    color: var(--text-main);
+}
+
+.posts {
+    text-align: center;
+    height: 100vh;
+    width: 50%;
+    background: linear-gradient(180deg, var(--bg-card-top), rgba(15, 5, 41, 0.2));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    padding: 12px;
+}
+
+.users {
+    text-align: center;
+    height: 100vh;
+    width: 25%;
+    background: linear-gradient(180deg, var(--bg-card-top), rgba(15, 5, 41, 0.2));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    padding: 12px;
+}
