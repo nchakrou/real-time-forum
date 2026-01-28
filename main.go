@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"forum/backend"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -18,6 +20,11 @@ type login struct {
 }
 
 func main() {
+	if err := backend.InitDB("forum.db"); err != nil {
+		log.Fatal(err)
+	}
+	defer backend.CloseDB()
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "frontend/index.html")
 	})
