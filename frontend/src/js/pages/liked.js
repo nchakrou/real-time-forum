@@ -1,6 +1,6 @@
-import { router } from "../core/Router.js"
-import { headerButtons, CategoriesListener } from "../core/Listeners.js"
-const homePage = `
+import { headerButtons } from "../core/Listeners.js";
+
+const likedPostsPage = `
 <header>
 <h2>Forum</h2>
 <div id  = "header-buttons">
@@ -12,9 +12,9 @@ const homePage = `
 </div>
 </header>
 <div class = "app-home">
-<div class = "categories">
+<div id = "categories"class = "categories">
   <h2>Categories</h2>
-  <ul id = "categories" class="list-categories">
+  <ul class="list-categories">
   <li>FPS</li>
   <li>Battle Royale</li>
   <li>MOBA</li>
@@ -25,7 +25,7 @@ const homePage = `
   </ul>
 </div>
 <div class = "posts">
-  <h2>Posts</h2>
+  <h2>Liked Posts</h2>
   <p>No posts yet</p>
 </div>
 <div class = "users">
@@ -35,11 +35,7 @@ const homePage = `
 </div>
 `
 
-export function home() {
-  document.body.innerHTML = homePage
-  headerButtons()
-  CategoriesListener()
+export function likedPosts() {
+    document.body.innerHTML = likedPostsPage
+    headerButtons()
 }
-
-
-

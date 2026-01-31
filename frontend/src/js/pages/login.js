@@ -1,4 +1,4 @@
-import { router } from "../Router.js"
+import { router } from "../core/Router.js"
 const loginPage = `
 <div class ="app-auth">
 <div class="login">
@@ -12,13 +12,15 @@ const loginPage = `
     <button type="submit">Login</button>
     <p id = "error" style = "display:none"></p>
     <label for="register">Don't have an account?</label>
-    <a href="/register">Register</a>
+    <a id="register">Register</a>
   </form>
 </div>
 </div>`;
 
 export function login() {
     document.body.innerHTML = loginPage;
+    registerListener();
+
     handleLogin();
 }
 function handleLogin() {
@@ -44,3 +46,9 @@ function handleLogin() {
         }
     });
 }
+function registerListener() {
+    document.getElementById("register").addEventListener("click", () => {
+        router("/register");
+    });
+}
+

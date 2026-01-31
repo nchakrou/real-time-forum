@@ -41,11 +41,9 @@ header h2 {
 .categories {
     height: 100vh;
     width: 25%;
-    background: linear-gradient(
-        180deg,
-        rgba(26, 15, 61, 0.65),
-        rgba(15, 5, 41, 0.35)
-    );
+    background: linear-gradient(180deg,
+            rgba(26, 15, 61, 0.65),
+            rgba(15, 5, 41, 0.35));
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border: 1px solid rgba(124, 58, 237, 0.15);
@@ -114,4 +112,73 @@ header h2 {
     border: 1px solid rgba(255, 255, 255, 0.03);
     border-radius: 16px;
     padding: 12px;
+}
+
+.postContent {
+    text-align: left;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.postContent textarea {
+    min-height: 200px;
+}
+
+.postTitle {
+    text-align: left;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.postCategory {
+    text-align: left;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+
+.CreatePostCategories {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 12px;
+    gap: 12px;
+
+}
+
+.CreatePostCategories div {
+    padding: 12px;
+    background-color: rgba(79, 70, 229, 0.12);
+    border-radius: 12px;
+    border: 1px solid rgba(79, 70, 229, 0.2);
+}
+
+.CreatePostCategories div:hover {
+    background-color: var(--purple-main);
+    color: var(--text-main);
+}
+
+div.active {
+    background-color: var(--purple-main);
+}
+
+div.active:hover {
+
+    background-color: rgba(79, 70, 229, 0.12);
+
+}
+
+li.active {
+    background-color: var(--purple-main);
+}
+
+li.active:hover {
+
+    background-color: rgba(79, 70, 229, 0.12);
+
 }

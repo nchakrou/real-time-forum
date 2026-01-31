@@ -40,7 +40,7 @@
 body {
     min-height: 100vh;
     background-color: var(--bg-main);
-    background-image: url("../assets/backround.png");
+    background-image: url("../assets/backround1.webp");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -110,7 +110,8 @@ form {
 }
 
 input,
-select {
+select,
+textarea {
     width: 100%;
     padding: 12px 14px;
 
@@ -132,7 +133,8 @@ select {
 
 
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
     border: 1px solid var(--purple-glow);
     box-shadow: 0 0 18px rgba(168, 85, 247, 0.8);
     background: rgba(255, 255, 255, 0.07);

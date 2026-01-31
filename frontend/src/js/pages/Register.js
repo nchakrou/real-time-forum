@@ -1,3 +1,4 @@
+import { router } from "../core/Router.js";
 const registerPage = `
   <div class ="app-auth">
 <div class="register">
@@ -22,13 +23,19 @@ const registerPage = `
     </select>
     <div class="message">
     Already have an account?
-  <a href="/login">login</a>
+  <a id="login">login</a>
     </div>
     <button class = "auth-button"type="submit">Register</button>
   </form>
 </div>
 
 </div>`;
-export function register(){
+export function register() {
   document.body.innerHTML = registerPage
+  loginListener()
+}
+function loginListener() {
+  document.getElementById("login").addEventListener("click", () => {
+    router("/login");
+  });
 }
