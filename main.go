@@ -54,6 +54,23 @@ func main() {
 			w.Write([]byte("unauthorized"))
 		}
 	})
+	http.HandleFunc("/api/register", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("register")
+		var p login
+		jsonData, _ := io.ReadAll(r.Body)
+		json.Unmarshal(jsonData, &p)
+		username := p.Username
+		password := p.Password
+		if _, ok := users[username]; ok {
+			w.WriteHeader(http.StatusConflict)
+			w.Write([]byte("user exists"))
+		} else {
+			users[username] = password
+			fmt.Println("Registered user:", users)
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("registered"))
+		}
+	})
 	http.HandleFunc("/api/islogged", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("ww")
 		cookie, err := r.Cookie("session")

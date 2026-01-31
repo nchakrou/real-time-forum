@@ -32,10 +32,48 @@ const registerPage = `
 </div>`;
 export function register() {
   document.body.innerHTML = registerPage
+  hanleRegister()
   loginListener()
 }
 function loginListener() {
   document.getElementById("login").addEventListener("click", () => {
     router("/login");
   });
+}
+function hanleRegister() {
+  document.getElementById("register-form").addEventListener("submit",async()=>{
+    event.preventDefault();
+    const first =document.getElementById("firstname").value
+    const last =document.getElementById("lastname").value
+    const nickname= document.getElementById("nickname").value
+    const age = document.getElementById("age").value
+    const email = document.getElementById("email").value
+    const password = document.getElementById("password").value
+    const gender = document.getElementById("gender").value
+ 
+    if (!first || !last || !nickname || !age || !email || !password || !gender) {
+      alert("Please fill in all fields.");
+      return;
+    }
+    const userData = {
+      firstName: first,
+      lastName: last,
+      username: nickname,
+      age: age,
+      email: email,
+      password: password
+  }
+  const requestOptions = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(userData)
+};
+const response = await fetch('/api/register', requestOptions);
+if (response.ok) {
+  router('/login');
+} else {
+  alert(`Registration failed: ${errorData.message}`);
+}
+  }
+)
 }
