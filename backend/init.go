@@ -7,45 +7,48 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var DB *sql.DB
-
-func InitDB(path string) error {
-	var err error
-
-	DB, err = sql.Open("sqlite3", path)
+func InitDB(path string) (*sql.DB, error) {
+	db, err := sql.Open("sqlite3", path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if err = DB.Ping(); err != nil {
-		return err
+	if err = db.Ping(); err != nil {
+		db.Close()
+		return nil, err
 	}
 
-	DB.SetMaxOpenConns(1)
-	DB.SetConnMaxLifetime(time.Minute * 10)
+	db.SetMaxOpenConns(1)
+	db.SetConnMaxLifetime(time.Minute * 10)
 
-	_, err = DB.Exec("PRAGMA foreign_keys = ON;")
+	_, err = db.Exec("PRAGMA foreign_keys = ON;")
 	if err != nil {
-		return err
+		db.Close()
+		return nil, err
 	}
 
-	return Schema()
+	if err := Schema(db); err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	return db, nil
 }
 
-func CloseDB() {
-	if DB != nil {
-		DB.Close()
-	}
-}
-func Schema() error {
+func Schema(db *sql.DB) error {
 	schema := `
-	CREATE TABLE IF NOT EXISTS users (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		email TEXT NOT NULL UNIQUE,
-		username TEXT NOT NULL UNIQUE,
-		password TEXT NOT NULL,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-	);
+CREATE TABLE IF NOT EXISTS users (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	nickname TEXT NOT NULL UNIQUE,
+	first_name TEXT NOT NULL,
+	last_name TEXT NOT NULL,
+	username TEXT NOT NULL UNIQUE,
+	age INTEGER NOT NULL,
+	email TEXT NOT NULL UNIQUE,
+	password TEXT NOT NULL,
+	gender TEXT NOT NULL,
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
 	CREATE TABLE IF NOT EXISTS sessions (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -60,6 +63,6 @@ func Schema() error {
 	CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 	`
 
-	_, err := DB.Exec(schema)
+	_, err := db.Exec(schema)
 	return err
 }

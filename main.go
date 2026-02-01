@@ -1,10 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"forum/backend"
-	"io"
 	"log"
 	"net/http"
 )
@@ -20,10 +18,12 @@ type login struct {
 }
 
 func main() {
-	if err := backend.InitDB("forum.db"); err != nil {
+
+	db, err := backend.InitDB("forum.db")
+	if err != nil {
 		log.Fatal(err)
 	}
-	defer backend.CloseDB()
+	defer db.Close()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "frontend/index.html")
@@ -33,47 +33,14 @@ func main() {
 		fmt.Println(r.URL.Path)
 		http.ServeFile(w, r, "frontend/"+r.URL.Path)
 	})
-	http.HandleFunc("/api/login", func(w http.ResponseWriter, r *http.Request) {
-		var p login
-		jsonData, _ := io.ReadAll(r.Body)
-		json.Unmarshal(jsonData, &p)
-		username := p.Username
-		password := p.Password
-		fmt.Println(username, password)
-		if pass, ok := users[username]; ok && pass == password {
-			cookie := http.Cookie{
-				Name:  "session",
-				Value: username,
-				Path:  "/",
-			}
-			http.SetCookie(w, &cookie)
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("success"))
-		} else {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("unauthorized"))
-		}
-	})
-	http.HandleFunc("/api/register", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("register")
-		var p login
-		jsonData, _ := io.ReadAll(r.Body)
-		json.Unmarshal(jsonData, &p)
-		username := p.Username
-		password := p.Password
-		if _, ok := users[username]; ok {
-			w.WriteHeader(http.StatusConflict)
-			w.Write([]byte("user exists"))
-		} else {
-			users[username] = password
-			fmt.Println("Registered user:", users)
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("registered"))
-		}
-	})
-	http.HandleFunc("/api/islogged", func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/api/login", backend.LoginHandler(db))
+	mux.HandleFunc("/api/register", backend.RegisterHandler(db))
+
+	mux.HandleFunc("/api/islogged", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("ww")
-		cookie, err := r.Cookie("session")
+		cookie, err := r.Cookie("session_token")
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("unauthorized"))
@@ -81,11 +48,11 @@ func main() {
 		fmt.Println(err, cookie)
 
 	})
-	http.HandleFunc("/api/logout", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/logout", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("fdgdf")
-		http.SetCookie(w, &http.Cookie{Name: "session", Value: "", MaxAge: -1, Path: "/"})
+		http.SetCookie(w, &http.Cookie{Name: "session_token", Value: "", MaxAge: -1, Path: "/"})
 	})
 	fmt.Println("Server started at http://localhost:8081")
-	http.ListenAndServe(":8081", nil)
+	http.ListenAndServe(":8081", mux)
 
 }

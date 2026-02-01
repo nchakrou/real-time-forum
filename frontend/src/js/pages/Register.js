@@ -70,7 +70,7 @@ function hanleRegister() {
 };
 const response = await fetch('/api/register', requestOptions);
 if (response.ok) {
-  router('/login');
+  router('/');
 } else {
   alert(`Registration failed: ${errorData.message}`);
 }
