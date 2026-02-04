@@ -1,4 +1,4 @@
-package backend
+package handlers
 
 import (
 	"database/sql"
@@ -35,7 +35,7 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 
 		if req.FirstName == "" || req.LastName == "" || req.Nickname == "" ||
 			req.Age == "" || req.Email == "" || req.Password == "" || req.Gender == "" {
-			fmt.Println("missingfields")
+			fmt.Println(req.FirstName, req.LastName, req.Nickname, req.Age, req.Email, req.Password, req.Gender)
 			http.Error(w, "Missing fields", http.StatusBadRequest)
 			return
 		}

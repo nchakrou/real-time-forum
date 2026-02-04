@@ -26,7 +26,8 @@ const homePage = `
 </div>
 <div class = "posts">
   <h2>Posts</h2>
-  <p>No posts yet</p>
+  <div id = "posts-container">
+  </div>
 </div>
 <div class = "users">
   <h2>Users</h2>
@@ -39,7 +40,44 @@ export function home() {
   document.body.innerHTML = homePage
   headerButtons()
   CategoriesListener()
+  getPosts()
 }
+async function getPosts() {
+ 
+    const response = await fetch("/api/posts", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+
+    if (response.ok) {
+      const posts = await response.json()
+      console.log(posts)
+      const postsContainer = document.getElementById("posts-container")
+    if (!posts ) {
+     
+      const noPosts = document.createElement("p")
+      noPosts.textContent = "No posts yet"
+      postsContainer.appendChild(noPosts)
+    } else {
+      
+      posts.forEach((post) => {
+        const postElement = document.createElement("div")
+        postElement.classList.add("post")
+        postElement.innerHTML = `
+          <h3>${post.title}</h3>
+          <p>${post.content}</p>
+        `
+        postsContainer.appendChild(postElement)
+      })
+    }
+    } else {
+      alert("Failed to fetch posts")
+      return
+    }
+    
+  }
 
 
 

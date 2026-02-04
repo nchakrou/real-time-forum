@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"forum/backend"
+	"forum/backend/handlers"
 	"log"
 	"net/http"
 )
@@ -34,8 +35,9 @@ func main() {
 		http.ServeFile(w, r, "frontend/"+r.URL.Path)
 	})
 
-	http.HandleFunc("/api/login", backend.LoginHandler(db))
-	http.HandleFunc("/api/register", backend.RegisterHandler(db))
+	http.HandleFunc("/api/login", handlers.LoginHandler(db))
+	http.HandleFunc("/api/register", handlers.RegisterHandler(db))
+	http.HandleFunc("/api/createpost", handlers.CreatePostHandler(db))
 
 	http.HandleFunc("/api/islogged", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("ww")
@@ -48,9 +50,9 @@ func main() {
 
 	})
 	http.HandleFunc("/api/logout", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("fdgdf")
 		http.SetCookie(w, &http.Cookie{Name: "session_token", Value: "", MaxAge: -1, Path: "/"})
 	})
+	http.HandleFunc("/api/posts",handlers.GetPostsHandler(db))
 	fmt.Println("Server started at http://localhost:8081")
 	http.ListenAndServe(":8081", nil)
 
