@@ -33,12 +33,11 @@ func main() {
 		fmt.Println(r.URL.Path)
 		http.ServeFile(w, r, "frontend/"+r.URL.Path)
 	})
-	mux := http.NewServeMux()
 
-	mux.HandleFunc("/api/login", backend.LoginHandler(db))
-	mux.HandleFunc("/api/register", backend.RegisterHandler(db))
+	http.HandleFunc("/api/login", backend.LoginHandler(db))
+	http.HandleFunc("/api/register", backend.RegisterHandler(db))
 
-	mux.HandleFunc("/api/islogged", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/islogged", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("ww")
 		cookie, err := r.Cookie("session_token")
 		if err != nil {
@@ -48,11 +47,11 @@ func main() {
 		fmt.Println(err, cookie)
 
 	})
-	mux.HandleFunc("/api/logout", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/logout", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("fdgdf")
 		http.SetCookie(w, &http.Cookie{Name: "session_token", Value: "", MaxAge: -1, Path: "/"})
 	})
 	fmt.Println("Server started at http://localhost:8081")
-	http.ListenAndServe(":8081", mux)
+	http.ListenAndServe(":8081", nil)
 
 }

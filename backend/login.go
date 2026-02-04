@@ -21,26 +21,25 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		var creds struct {
-			Username string `json:"username"`
+			Username string `json:"username"` // nickname أو email
 			Password string `json:"password"`
 		}
 
-		err := json.NewDecoder(r.Body).Decode(&creds)
-		if err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)
 			return
 		}
 
 		if creds.Username == "" || creds.Password == "" {
-			http.Error(w, "Email and password required", http.StatusBadRequest)
+			http.Error(w, "Nickname/email and password required", http.StatusBadRequest)
 			return
 		}
 
 		var userID int64
 		var passwordHash string
 
-		err = db.QueryRow(
-			"SELECT id, password_hash FROM users WHERE email = ? OR username = ?",
+		err := db.QueryRow(
+			"SELECT id, password FROM users WHERE nickname = ? OR email = ?",
 			creds.Username, creds.Username,
 		).Scan(&userID, &passwordHash)
 
@@ -49,20 +48,16 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 		if err != nil {
-			log.Println(err)
+			log.Println("DB error:", err)
 			http.Error(w, "Server error", http.StatusInternalServerError)
 			return
 		}
 
-		if bcrypt.CompareHashAndPassword(
-			[]byte(passwordHash),
-			[]byte(creds.Password),
-		) != nil {
+		if bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(creds.Password)) != nil {
 			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 			return
 		}
 
-		// --- session ---
 		token := generateRandomToken()
 		exp := time.Now().Add(24 * time.Hour)
 
@@ -73,7 +68,7 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 			token, userID, exp,
 		)
 		if err != nil {
-			http.Error(w, "Session error", http.StatusInternalServerError)
+			http.Error(w, "Session creation failed", http.StatusInternalServerError)
 			return
 		}
 
@@ -92,6 +87,7 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 		})
 	}
 }
+
 func generateRandomToken() string {
 	b := make([]byte, 32)
 	_, err := rand.Read(b)

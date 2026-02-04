@@ -3,6 +3,7 @@ package backend
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -20,7 +21,6 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 		var req struct {
 			FirstName string `json:"firstName"`
 			LastName  string `json:"lastName"`
-			Username  string `json:"username"`
 			Nickname  string `json:"nickname"`
 			Age       string `json:"age"`
 			Email     string `json:"email"`
@@ -28,12 +28,14 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 			Gender    string `json:"gender"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			fmt.Println("json")
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)
 			return
 		}
 
-		if req.FirstName == "" || req.LastName == "" || req.Username == "" || req.Nickname == "" ||
+		if req.FirstName == "" || req.LastName == "" || req.Nickname == "" ||
 			req.Age == "" || req.Email == "" || req.Password == "" || req.Gender == "" {
+			fmt.Println("missingfields")
 			http.Error(w, "Missing fields", http.StatusBadRequest)
 			return
 		}
@@ -51,16 +53,23 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		res, err := db.Exec(
-			`INSERT INTO users(nickname, first_name,last_name,username,age,email,password,gender)
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-			req.Nickname, req.FirstName, req.LastName, req.Username, ageInt, req.Email, hashed, req.Gender,
+			`INSERT INTO users(nickname, first_name, last_name, age, email, password, gender)
+			 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+			req.Nickname,
+			req.FirstName,
+			req.LastName,
+			ageInt,
+			req.Email,
+			hashed,
+			req.Gender,
 		)
 		if err != nil {
+			fmt.Println("db err", err)
 			http.Error(w, "User already exists or DB error", http.StatusConflict)
 			return
 		}
 
-		 // auto login //
+		// auto login //
 		userID, err := res.LastInsertId()
 		if err != nil {
 			http.Error(w, "Server error", http.StatusInternalServerError)

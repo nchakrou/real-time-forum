@@ -41,8 +41,10 @@ function loginListener() {
   });
 }
 function hanleRegister() {
-  document.getElementById("register-form").addEventListener("submit",async()=>{
-    event.preventDefault();
+  document.getElementById("register-form").addEventListener(
+    "submit",
+    async (event) => {
+      event.preventDefault();
     const first =document.getElementById("firstname").value
     const last =document.getElementById("lastname").value
     const nickname= document.getElementById("nickname").value
@@ -58,11 +60,12 @@ function hanleRegister() {
     const userData = {
       firstName: first,
       lastName: last,
-      username: nickname,
+      nickname: nickname,  
       age: age,
       email: email,
-      password: password
-  }
+      password: password,
+      gender: gender       
+    }
   const requestOptions = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -72,7 +75,7 @@ const response = await fetch('/api/register', requestOptions);
 if (response.ok) {
   router('/');
 } else {
-  alert(`Registration failed: ${errorData.message}`);
+  alert(`Registration failed: `);
 }
   }
 )
