@@ -182,3 +182,23 @@ li.active:hover {
     background-color: rgba(79, 70, 229, 0.12);
 
 }
+#posts-container{
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+   
+}
+.post{
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+     text-align: left;
+    padding: 12px;
+    background-color: rgba(79, 70, 229, 0.12);
+    border-radius: 12px;
+    border: 1px solid rgba(79, 70, 229, 0.2);
+}
+.hidden{
+    display: none;
+}

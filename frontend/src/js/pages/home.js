@@ -1,5 +1,5 @@
 import { router } from "../core/Router.js"
-import { headerButtons, CategoriesListener } from "../core/Listeners.js"
+import { headerButtons, CategoriesListener,PostButtonsListener } from "../core/Listeners.js"
 const homePage = `
 <header>
 <h2>Forum</h2>
@@ -68,9 +68,22 @@ async function getPosts() {
         postElement.innerHTML = `
           <h3>${post.title}</h3>
           <p>${post.content}</p>
+          <p><strong>Category:</strong> ${post.category}</p>
+          <div class= "post-buttons">
+          <button type="submit" class = "like_button">👍 <span>${post.likes}</span> Like</button>
+          <button type="submit" class = "dislike_button">👎 <span>${post.dislikes}</span> Dislike</button>
+          <button type="submit" class = "comment_button">💬<span> ${post.comments}</span> comment</button>
+          </div>
+          <div class = "comments-section hidden">
+          <input type="text" placeholder="Write a comment...">
+          <button type="submit">Submit</button>
+          </div>
         `
         postsContainer.appendChild(postElement)
+        
+        
       })
+PostButtonsListener()
     }
     } else {
       alert("Failed to fetch posts")
