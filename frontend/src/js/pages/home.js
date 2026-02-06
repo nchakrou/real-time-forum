@@ -66,6 +66,7 @@ async function getPosts() {
       Object.values(posts).forEach((post) => {
         const postElement = document.createElement("div")
         postElement.classList.add("post")
+        postElement.dataset.postId = post.id
         postElement.innerHTML = `
           <h3>${post.title}</h3>
           <p>${post.content}</p>
@@ -76,8 +77,8 @@ async function getPosts() {
           <button type="submit" class = "comment_button">💬<span> ${post.comments}</span> comment</button>
           </div>
           <div class = "comments-section hidden">
-          <input type="text" placeholder="Write a comment...">
-          <button type="submit">Submit</button>
+          <input class = "comment-input" type="text" placeholder="Write a comment...">
+          <button type="submit" class = "Submit_comment">Submit</button>
           </div>
         `
         postsContainer.appendChild(postElement)

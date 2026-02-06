@@ -12,7 +12,7 @@ if(log) {
     }
 }else {
 
-    if (path === "/register" || path === "/login") {
+    if (path === "/regstier" || path === "/login") {
         router(path);
     }else {
         router("/login");
