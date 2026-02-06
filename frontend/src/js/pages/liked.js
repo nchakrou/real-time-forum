@@ -1,5 +1,4 @@
-import { headerButtons } from "../core/Listeners.js";
-
+import { headerButtons } from "../core/Listeners/Listeners.js";
 const likedPostsPage = `
 <header>
 <h2>Forum</h2>

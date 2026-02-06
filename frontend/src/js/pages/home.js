@@ -1,5 +1,8 @@
-import { router } from "../core/Router.js"
-import { headerButtons, CategoriesListener,PostButtonsListener } from "../core/Listeners.js"
+import { headerButtons ,CategoriesListener} from "../core/Listeners/Listeners.js";
+import { fetchPosts } from "../core/Listeners/postListners.js";
+
+
+
 const homePage = `
 <header>
 <h2>Forum</h2>
@@ -40,59 +43,9 @@ export function home() {
   document.body.innerHTML = homePage
   headerButtons()
   CategoriesListener()
-  getPosts()
+  fetchPosts("/api/posts")
 }
-async function getPosts() {
- 
-    const response = await fetch("/api/posts", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
 
-    if (response.ok) {
-      const posts = await response.json()
-      console.log(posts)
-      const postsContainer = document.getElementById("posts-container")
-    if (Object.keys(posts).length === 0) {
-     
-      const noPosts = document.createElement("p")
-      noPosts.textContent = "No posts yet"
-      postsContainer.appendChild(noPosts)
-    } else {
-      console.log(posts);
-      
-      Object.values(posts).forEach((post) => {
-        const postElement = document.createElement("div")
-        postElement.classList.add("post")
-        postElement.dataset.postId = post.id
-        postElement.innerHTML = `
-          <h3>${post.title}</h3>
-          <p>${post.content}</p>
-          <p><strong>Category:</strong> ${post.categories}</p>
-          <div class= "post-buttons">
-          <button type="submit" class = "like_button">👍 <span>${post.likes}</span> Like</button>
-          <button type="submit" class = "dislike_button">👎 <span>${post.dislikes}</span> Dislike</button>
-          <button type="submit" class = "comment_button">💬<span> ${post.comments}</span> comment</button>
-          </div>
-          <div class = "comments-section hidden">
-          <input class = "comment-input" type="text" placeholder="Write a comment...">
-          <button type="submit" class = "Submit_comment">Submit</button>
-          </div>
-        `
-        postsContainer.appendChild(postElement)
-        
-        
-      })
-PostButtonsListener()
-    }
-    } else {
-      alert("Failed to fetch posts")
-      return
-    }
-    
-  }
 
 
 

@@ -31,7 +31,7 @@ func main() {
 	})
 
 	http.HandleFunc("/src/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.URL.Path)
+
 		http.ServeFile(w, r, "frontend/"+r.URL.Path)
 	})
 
@@ -42,7 +42,8 @@ func main() {
 		http.SetCookie(w, &http.Cookie{Name: "session_token", Value: "", MaxAge: -1, Path: "/"})
 	})
 	http.HandleFunc("/api/posts", handlers.GetPostsHandler(db))
-http.HandleFunc("/api/createpost", handlers.CreatePostHandler(db))
+	http.HandleFunc("/api/createpost", handlers.CreatePostHandler(db))
+	http.HandleFunc("/api/myposts", handlers.GetMyPostsHandler(db))
 
 	fmt.Println("Server started at http://localhost:8081")
 	log.Fatal(http.ListenAndServe(":8081", nil))

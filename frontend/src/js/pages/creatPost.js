@@ -1,5 +1,5 @@
 
-import { headerButtons } from "../core/Listeners.js"
+import { headerButtons } from "../core/Listeners/Listeners.js";
 import { router } from "../core/Router.js"
 const createPostPage = `<header>
 <h2>Forum</h2>

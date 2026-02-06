@@ -1,4 +1,5 @@
-import { headerButtons } from "../core/Listeners.js";
+import { headerButtons ,CategoriesListener} from "../core/Listeners/Listeners.js";
+import { fetchPosts } from "../core/Listeners/postListners.js";
 
 const myPostsPage = `
 <header>
@@ -26,7 +27,8 @@ const myPostsPage = `
 </div>
 <div class = "posts">
   <h2>My Posts</h2>
-  <p>No posts yet</p>
+  <div id = "posts-container">
+  </div>
 </div>
 <div class = "users">
   <h2>Users</h2>
@@ -38,4 +40,6 @@ const myPostsPage = `
 export function myPosts() {
     document.body.innerHTML = myPostsPage
     headerButtons()
+    CategoriesListener("/api/myposts")
+    fetchPosts("/api/myposts")
 }

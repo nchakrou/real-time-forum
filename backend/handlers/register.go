@@ -3,7 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -28,14 +28,14 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 			Gender    string `json:"gender"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			fmt.Println("json")
+			log.Println("Error decoding JSON:", err)
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)
 			return
 		}
 
 		if req.FirstName == "" || req.LastName == "" || req.Nickname == "" ||
 			req.Age == "" || req.Email == "" || req.Password == "" || req.Gender == "" {
-			fmt.Println(req.FirstName, req.LastName, req.Nickname, req.Age, req.Email, req.Password, req.Gender)
+			log.Println("Missing fields in registration request")
 			http.Error(w, "Missing fields", http.StatusBadRequest)
 			return
 		}
@@ -64,7 +64,7 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 			req.Gender,
 		)
 		if err != nil {
-			fmt.Println("db err", err)
+			log.Println("Error inserting user:", err)
 			http.Error(w, "User already exists or DB error", http.StatusConflict)
 			return
 		}

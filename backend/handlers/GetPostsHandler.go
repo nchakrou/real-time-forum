@@ -3,9 +3,9 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
+	"strings"
 )
 
 type Post struct {
@@ -25,25 +25,56 @@ func GetPostsHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		rows, err := db.Query(`
+		category := r.URL.Query().Get("category")
+		var rows *sql.Rows
+		var err error
+		if category == "" {
+			rows, err = db.Query(`
 		SELECT 
 		p.id, p.title, p.content, p.likes, p.dislikes, p.comments,
-		 c.name
-	FROM posts p
-	 JOIN post_categories pc ON pc.post_id = p.id
-	 JOIN categories c ON c.id = pc.category_id
-	 GROUP BY p.id 
-	ORDER BY p.created_at DESC
+		GROUP_CONCAT(c.name) AS categories
+		FROM posts p
+		JOIN post_categories pc ON pc.post_id = p.id
+		JOIN categories c ON c.id = pc.category_id
+		GROUP BY p.id 
+		ORDER BY p.created_at DESC
 	LIMIT 10
 		`)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			log.Println("Error querying posts:", err)
-			return
-		}
-		defer rows.Close()
 
-		var posts = make(map[int]Post)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				log.Println("Error querying posts:", err)
+				return
+			}
+		} else {
+			rows, err = db.Query(`
+			SELECT 
+    p.id, p.title, p.content, p.likes, p.dislikes, p.comments,
+    (SELECT GROUP_CONCAT(c2.name)
+     FROM post_categories pc2
+     JOIN categories c2 ON c2.id = pc2.category_id
+     WHERE pc2.post_id = p.id
+    ) AS categories
+FROM posts p
+WHERE p.id IN (
+   SELECT pc3.post_id
+   FROM post_categories pc3
+   JOIN categories c3 ON c3.id = pc3.category_id
+   WHERE c3.name = ?
+)
+ORDER BY p.created_at DESC
+LIMIT 10
+
+			`, category)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				log.Println("Error querying posts with category:", err)
+				return
+			}
+		}
+
+		defer rows.Close()
+		var posts []Post
 		for rows.Next() {
 			var post Post
 			var category string
@@ -53,17 +84,16 @@ func GetPostsHandler(db *sql.DB) http.HandlerFunc {
 				return
 			}
 
-			if existingPost, exists := posts[post.Id]; exists {
-				existingPost.Categories = append(existingPost.Categories, category)
-				posts[post.Id] = existingPost
-			} else {
-				post.Categories = []string{category}
-				posts[post.Id] = post
-			}
+			post.Categories = strings.Split(category, ",")
+			posts = append(posts, post)
 		}
-		fmt.Println(posts)
+
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(posts)
+		if err := json.NewEncoder(w).Encode(posts); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			log.Println("Error encoding posts to JSON:", err)
+			return
+		}
 
 	}
 }
