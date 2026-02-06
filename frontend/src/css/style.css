@@ -39,7 +39,8 @@ header h2 {
 }
 
 .categories {
-    height: 100vh;
+        height: 100vh;
+
     width: 25%;
     background: linear-gradient(180deg,
             rgba(26, 15, 61, 0.65),
@@ -91,8 +92,9 @@ header h2 {
 }
 
 .posts {
+    min-height: 100vh;
     text-align: center;
-    height: 100vh;
+    height: 100%;
     width: 50%;
     background: linear-gradient(180deg, var(--bg-card-top), rgba(15, 5, 41, 0.2));
     backdrop-filter: blur(12px);

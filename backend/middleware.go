@@ -5,10 +5,10 @@ import (
 	"net/http"
 )
 
-func GetUserIDFromRequest(DB *sql.DB, r *http.Request) int64 {
+func GetUserIDFromRequest(DB *sql.DB, r *http.Request) (int64, error) {
 	c, err := r.Cookie("session_token")
 	if err != nil {
-		return 0
+		return 0, err
 	}
 	token := c.Value
 
@@ -19,16 +19,17 @@ func GetUserIDFromRequest(DB *sql.DB, r *http.Request) int64 {
 		token,
 	).Scan(&userID)
 	if err != nil {
-		return 0
+		return 0, err
 	}
 
-	return userID
+	return userID, nil
 }
 
 func AuthRequired(DB *sql.DB, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if GetUserIDFromRequest(DB, r) == 0 {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
+
+		if _, err := GetUserIDFromRequest(DB, r); err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -37,8 +38,8 @@ func AuthRequired(DB *sql.DB, next http.HandlerFunc) http.HandlerFunc {
 
 func NotAuthRequired(DB *sql.DB, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if GetUserIDFromRequest(DB, r) != 0 {
-			http.Redirect(w, r, "/post", http.StatusSeeOther)
+		if _, err := GetUserIDFromRequest(DB, r); err == nil {
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		next.ServeHTTP(w, r)

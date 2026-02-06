@@ -55,20 +55,21 @@ async function getPosts() {
       const posts = await response.json()
       console.log(posts)
       const postsContainer = document.getElementById("posts-container")
-    if (!posts ) {
+    if (Object.keys(posts).length === 0) {
      
       const noPosts = document.createElement("p")
       noPosts.textContent = "No posts yet"
       postsContainer.appendChild(noPosts)
     } else {
+      console.log(posts);
       
-      posts.forEach((post) => {
+      Object.values(posts).forEach((post) => {
         const postElement = document.createElement("div")
         postElement.classList.add("post")
         postElement.innerHTML = `
           <h3>${post.title}</h3>
           <p>${post.content}</p>
-          <p><strong>Category:</strong> ${post.category}</p>
+          <p><strong>Category:</strong> ${post.categories}</p>
           <div class= "post-buttons">
           <button type="submit" class = "like_button">👍 <span>${post.likes}</span> Like</button>
           <button type="submit" class = "dislike_button">👎 <span>${post.dislikes}</span> Dislike</button>

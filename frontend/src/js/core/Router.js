@@ -1,7 +1,7 @@
 import { login } from "../pages/login.js";
 import { home } from "../pages/home.js";
 import { register } from "../pages/Register.js";
-import { createPost } from "../pages/postes.js";
+import { createPost } from "../pages/creatPost.js";
 import {myPosts} from "../pages/myPosts.js";
 import {likedPosts} from "../pages/liked.js";
 export  function router(path) {

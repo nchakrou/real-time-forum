@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
+	"forum/backend"
 	"log"
 	"net/http"
 	"time"
@@ -87,7 +88,17 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 		})
 	}
 }
+func IsLogged(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID, err := backend.GetUserIDFromRequest(db, r)
+		if err != nil || userID == 0 {
+			w.WriteHeader(http.StatusUnauthorized)
+			log.Println("Unauthorized:", err)
+			return
+		}
 
+	}
+}
 func generateRandomToken() string {
 	b := make([]byte, 32)
 	_, err := rand.Read(b)

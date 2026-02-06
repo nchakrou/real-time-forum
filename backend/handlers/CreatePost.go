@@ -3,7 +3,6 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"forum/backend"
 	"io"
 	"log"
@@ -18,7 +17,6 @@ type post struct {
 
 func CreatePostHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("ok")
 
 		if r.Method != http.MethodPost {
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -38,10 +36,10 @@ func CreatePostHandler(db *sql.DB) http.HandlerFunc {
 			log.Println("Error unmarshaling JSON:", err)
 			return
 		}
-		userid := backend.GetUserIDFromRequest(db, r)
-		if userid == 0 {
+		userid, err := backend.GetUserIDFromRequest(db, r)
+		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			log.Println("Unauthorized: no valid session")
+			log.Println("Error getting user ID from request:", err)
 			return
 		}
 		res, err := db.Exec("INSERT INTO posts (user_id, title, content) VALUES (?, ?, ?)", userid, postData.Title, postData.Content)
@@ -64,6 +62,7 @@ func CreatePostHandler(db *sql.DB) http.HandlerFunc {
 				return
 			}
 			_, err = db.Exec("INSERT INTO post_categories (post_id, category_id) VALUES (?, ?)", postID, categoryID)
+			
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				log.Println("Error inserting post category into database:", err)

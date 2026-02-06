@@ -39,21 +39,12 @@ func main() {
 	http.HandleFunc("/api/register", handlers.RegisterHandler(db))
 	http.HandleFunc("/api/createpost", handlers.CreatePostHandler(db))
 
-	http.HandleFunc("/api/islogged", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("ww")
-		cookie, err := r.Cookie("session_token")
-		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("unauthorized"))
-		}
-		fmt.Println(err, cookie)
-
-	})
+	http.HandleFunc("/api/islogged", handlers.IsLogged(db))
 	http.HandleFunc("/api/logout", func(w http.ResponseWriter, r *http.Request) {
 		http.SetCookie(w, &http.Cookie{Name: "session_token", Value: "", MaxAge: -1, Path: "/"})
 	})
 	http.HandleFunc("/api/posts", handlers.GetPostsHandler(db))
 	fmt.Println("Server started at http://localhost:8081")
-	http.ListenAndServe(":8081", nil)
+	log.Fatal(http.ListenAndServe(":8081", nil))
 
 }
