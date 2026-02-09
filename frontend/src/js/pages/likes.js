@@ -7,7 +7,8 @@ export async function toggleLike(id, value) {
     const res = await fetch(`/api/like?id=${id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ value })
+      body: JSON.stringify({ value }),
+       credentials: "include" 
     });
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -56,6 +57,7 @@ export async function likedPosts() {
     const response = await fetch("/api/liked-posts", {
       method: "GET",
       headers: { "Content-Type": "application/json" },
+      credentials : "include"
     });
 
     if (!response.ok) throw new Error(`HTTP ${response.status}`);

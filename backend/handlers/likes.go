@@ -3,14 +3,15 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"forum/backend"
 	"log"
 	"net/http"
 	"strconv"
+
+	"forum/backend"
 )
 
 type LikeRequest struct {
-	Value int `json:"value"` // 1 = like -1 = dislike
+	Value int `json:"value"` // 1 = like, -1 = dislike
 }
 
 type LikeResponse struct {
@@ -32,11 +33,10 @@ func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
-		log.Println("err2", err)
 
 		var req LikeRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			log.Println("err3", err)
+			log.Println("err2", err)
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)
 			return
 		}
@@ -44,7 +44,7 @@ func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 		idStr := r.URL.Query().Get("id")
 		id, _ := strconv.Atoi(idStr)
 		if id == 0 {
-			log.Println("id", idStr)
+			log.Println(" id", idStr)
 			http.Error(w, "Missing id", http.StatusBadRequest)
 			return
 		}
@@ -55,27 +55,53 @@ func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 		}
 
 		var existing int
-		err = db.QueryRow("SELECT kind FROM "+table+" WHERE user_id=? AND "+column+"=?", userID, id).Scan(&existing)
+		err = db.QueryRow(
+			"SELECT value FROM "+table+" WHERE user_id=? AND "+column+"=?",
+			userID, id,
+		).Scan(&existing)
+
 		userValue := 0
 
 		if err == sql.ErrNoRows {
-			db.Exec("INSERT INTO "+table+" (user_id,"+column+",kind) VALUES (?,?,?)", userID, id, req.Value)
+			db.Exec(
+				"INSERT INTO "+table+" (user_id,"+column+",value) VALUES (?,?,?)",
+				userID, id, req.Value,
+			)
 			userValue = req.Value
 		} else if err == nil {
 			if existing == req.Value {
-				db.Exec("DELETE FROM "+table+" WHERE user_id=? AND "+column+"=?", userID, id)
+				db.Exec(
+					"DELETE FROM "+table+" WHERE user_id=? AND "+column+"=?",
+					userID, id,
+				)
 				userValue = 0
 			} else {
-				db.Exec("UPDATE "+table+" SET kind=? WHERE user_id=? AND "+column+"=?", req.Value, userID, id)
+				db.Exec(
+					"UPDATE "+table+" SET value=? WHERE user_id=? AND "+column+"=?",
+					req.Value, userID, id,
+				)
 				userValue = req.Value
 			}
+		} else {
+			log.Println("DB err:", err)
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
 		}
 
 		var likes, dislikes int
-		db.QueryRow("SELECT COUNT(*) FROM "+table+" WHERE "+column+"=? AND kind=1", id).Scan(&likes)
-		db.QueryRow("SELECT COUNT(*) FROM "+table+" WHERE "+column+"=? AND kind=-1", id).Scan(&dislikes)
-
-		resp := LikeResponse{Likes: likes, Dislikes: dislikes, UserValue: userValue}
+		db.QueryRow(
+			"SELECT COUNT(*) FROM "+table+" WHERE "+column+"=? AND value=1",
+			id,
+		).Scan(&likes)
+		db.QueryRow(
+			"SELECT COUNT(*) FROM "+table+" WHERE "+column+"=? AND value=-1",
+			id,
+		).Scan(&dislikes)
+		resp := LikeResponse{
+			Likes:     likes,
+			Dislikes:  dislikes,
+			UserValue: userValue,
+		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
 	}
