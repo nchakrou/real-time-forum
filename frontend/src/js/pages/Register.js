@@ -72,10 +72,13 @@ function hanleRegister() {
     body: JSON.stringify(userData)
 };
 const response = await fetch('/api/register', requestOptions);
+let err = await response.json()
 if (response.ok) {
   router('/');
 } else {
   alert(`Registration failed: `);
+console.log(err);
+
 }
   }
 )
