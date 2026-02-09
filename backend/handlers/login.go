@@ -22,7 +22,7 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		var creds struct {
-			Username string `json:"username"` // nickname أو email
+			Username string `json:"username"` 
 			Password string `json:"password"`
 		}
 
