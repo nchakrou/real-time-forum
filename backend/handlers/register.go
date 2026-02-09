@@ -91,6 +91,7 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 			Expires:  exp,
 			Path:     "/",
 			HttpOnly: true,
+			Secure:   true,
 			SameSite: http.SameSiteLaxMode,
 		})
 		w.Header().Set("Content-Type", "application/json")

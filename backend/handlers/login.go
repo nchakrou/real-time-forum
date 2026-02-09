@@ -79,6 +79,7 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 			Expires:  exp,
 			Path:     "/",
 			HttpOnly: true,
+			Secure:   true,
 			SameSite: http.SameSiteLaxMode,
 		})
 

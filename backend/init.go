@@ -68,6 +68,38 @@ CREATE TABLE IF NOT EXISTS users (
 		comments INTEGER DEFAULT 0,
 		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 	);
+	CREATE TABLE IF NOT EXISTS likes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+
+    post_id INTEGER,
+    comment_id INTEGER,
+
+    value INTEGER NOT NULL CHECK (value IN (1, -1)),
+    created_at DATETIME DEFAULT (datetime('now')),
+
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    FOREIGN KEY(comment_id) REFERENCES comments(id) ON DELETE CASCADE,
+
+    CHECK (
+        (post_id IS NOT NULL AND comment_id IS NULL)
+        OR
+        (post_id IS NULL AND comment_id IS NOT NULL)
+    ),
+
+    UNIQUE(user_id, post_id),
+    UNIQUE(user_id, comment_id)
+);
+
+CREATE TABLE comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER,
+    user_id INTEGER,
+    content TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 	CREATE TABLE IF NOT EXISTS categories (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		name TEXT NOT NULL UNIQUE

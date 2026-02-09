@@ -3,7 +3,7 @@ import { home } from "../pages/home.js";
 import { register } from "../pages/Register.js";
 import { createPost } from "../pages/creatPost.js";
 import {myPosts} from "../pages/myPosts.js";
-import {likedPosts} from "../pages/liked.js";
+import {likedPosts} from "../pages/likes.js";
 export  function router(path) {
     history.pushState({}, "", path);
     if (path === "/register") {

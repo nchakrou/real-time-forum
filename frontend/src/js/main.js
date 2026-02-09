@@ -29,4 +29,3 @@ async function isLogged() {
     }
     return false
 }
-
