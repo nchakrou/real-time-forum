@@ -7,7 +7,6 @@ const postButtons = {
     Submit_comment: (e) => submitCommentListener(e)
 }
 
-
 export async function fetchPosts(path){   
     try{     
         const response = await fetch(path, {
@@ -77,20 +76,39 @@ export function PostButtonsListener() {
         if (postButtons[buttonClass]) postButtons[buttonClass](e);
     });
 }
-function submitCommentListener(e) {
+async function submitCommentListener(e) {
     const post = e.target.closest(".post");
     const commentInput = post.querySelector(".comment-input");
-
     const commentText = commentInput.value.trim();
-    if (commentText === "") {
-        alert("Comment cannot be empty");
+    if (!commentText) return alert("Comment cannot be empty");
+
+    const postId = post.dataset.postId;
+
+    try {
+        const formData = new FormData();
+        formData.append("post_id", postId);
+        formData.append("comment", commentText);
+
+        const res = await fetch("/add-comment", {
+            method: "POST",
+            credentials: "include",
+            body: formData
+        });
+
+        if (!res.ok) return console.error("Failed to add comment");
+
+        const data = await res.json();
+        if (data.status === "ok") {
+            commentInput.value = "";
+            loadComments(post);
+        }
+
+    } catch (err) {
+        console.error("Error adding comment:", err);
     }
-    const commentsSection = post.querySelector(".comments-section");
-    const newComment = document.createElement("p");
-    newComment.textContent = commentText;
-    commentsSection.appendChild(newComment);
-    commentInput.value = "";
 }
+
+
 async function likeListener(e) {
     const post = e.target.closest(".post");
     const postId = post.dataset.postId; 
@@ -103,10 +121,36 @@ async function dislikeListener(e) {
     const postId = post.dataset.postId;
     await toggleLike(postId, -1);       
 }
+async function loadComments(post) {
+    const commentsContainer = post.querySelector(".comments-section .comments-list");
+    const postId = post.dataset.postId;
+    
+    try {
+        const res = await fetch(`/comments?post_id=${postId}`);
+        if (!res.ok) throw new Error("Failed to fetch comments");
 
+        const comments = await res.json();
+
+        commentsContainer.innerHTML = ""; 
+
+        comments.forEach(c => {
+            const newComment = document.createElement("p");
+            newComment.innerHTML = `<strong>${c.username}:</strong> ${c.content}`;
+            commentsContainer.appendChild(newComment);
+        });
+
+    } catch (err) {
+        console.error("Error loading comments:", err);
+    }
+}
 
 
 function commentListener(e) {
     const post = e.target.closest(".post");
-    post.querySelector(".comments-section").classList.toggle("hidden")
+    const section = post.querySelector(".comments-section");
+    section.classList.toggle("hidden");
+
+    if (!section.classList.contains("hidden") && section.querySelector(".comments-list").children.length === 0) {
+        loadComments(post);
+    }
 }

@@ -3,7 +3,6 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -22,6 +21,7 @@ type LikeResponse struct {
 
 func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
@@ -29,23 +29,25 @@ func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 
 		userID, err := backend.GetUserIDFromRequest(db, r)
 		if err != nil {
-			log.Println("err1", err)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
 		var req LikeRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			log.Println("err2", err)
 			http.Error(w, "Invalid JSON", http.StatusBadRequest)
 			return
 		}
 
+		if req.Value != 1 && req.Value != -1 {
+			http.Error(w, "Invalid value", http.StatusBadRequest)
+			return
+		}
+
 		idStr := r.URL.Query().Get("id")
-		id, _ := strconv.Atoi(idStr)
-		if id == 0 {
-			log.Println(" id", idStr)
-			http.Error(w, "Missing id", http.StatusBadRequest)
+		id, err := strconv.Atoi(idStr)
+		if err != nil || id <= 0 {
+			http.Error(w, "Invalid id", http.StatusBadRequest)
 			return
 		}
 
@@ -54,8 +56,15 @@ func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 			column = "comment_id"
 		}
 
+		tx, err := db.Begin()
+		if err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
+		defer tx.Rollback()
+
 		var existing int
-		err = db.QueryRow(
+		err = tx.QueryRow(
 			"SELECT value FROM "+table+" WHERE user_id=? AND "+column+"=?",
 			userID, id,
 		).Scan(&existing)
@@ -63,40 +72,86 @@ func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 		userValue := 0
 
 		if err == sql.ErrNoRows {
-			db.Exec(
+
+			_, err = tx.Exec(
 				"INSERT INTO "+table+" (user_id,"+column+",value) VALUES (?,?,?)",
 				userID, id, req.Value,
 			)
+			if err != nil {
+				http.Error(w, "Database error", http.StatusInternalServerError)
+				return
+			}
 			userValue = req.Value
+
 		} else if err == nil {
+
 			if existing == req.Value {
-				db.Exec(
+
+				_, err = tx.Exec(
 					"DELETE FROM "+table+" WHERE user_id=? AND "+column+"=?",
 					userID, id,
 				)
+				if err != nil {
+					http.Error(w, "Database error", http.StatusInternalServerError)
+					return
+				}
 				userValue = 0
+
 			} else {
-				db.Exec(
+
+				_, err = tx.Exec(
 					"UPDATE "+table+" SET value=? WHERE user_id=? AND "+column+"=?",
 					req.Value, userID, id,
 				)
+				if err != nil {
+					http.Error(w, "Database error", http.StatusInternalServerError)
+					return
+				}
 				userValue = req.Value
 			}
+
 		} else {
-			log.Println("DB err:", err)
 			http.Error(w, "Database error", http.StatusInternalServerError)
 			return
 		}
 
 		var likes, dislikes int
-		db.QueryRow(
+
+		err = tx.QueryRow(
 			"SELECT COUNT(*) FROM "+table+" WHERE "+column+"=? AND value=1",
 			id,
 		).Scan(&likes)
-		db.QueryRow(
+		if err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
+		err = tx.QueryRow(
 			"SELECT COUNT(*) FROM "+table+" WHERE "+column+"=? AND value=-1",
 			id,
 		).Scan(&dislikes)
+		if err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
+
+		if err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
+		if target == "post" {
+			_, err = tx.Exec(
+				"UPDATE posts SET likes=?, dislikes=? WHERE id=?",
+				likes, dislikes, id,
+			)
+			if err != nil {
+				http.Error(w, "Database error", http.StatusInternalServerError)
+				return
+			}
+		}
+		if err = tx.Commit(); err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
 		resp := LikeResponse{
 			Likes:     likes,
 			Dislikes:  dislikes,
