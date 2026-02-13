@@ -1,6 +1,6 @@
 import { toggleLike } from "../../pages/likes.js";
 
-const postButtons = {
+export const postButtons = {
     like_button: (e) => likeListener(e),
     dislike_button: (e) => dislikeListener(e),
     comment_button: (e) => commentListener(e),

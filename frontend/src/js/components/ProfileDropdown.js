@@ -1,6 +1,5 @@
 
-import { router } from "../core/Router.js";
-import { routes } from "../core/Listeners/Listeners.js";
+import { headerButtonsRoutes as routes } from "../core/Listeners/Listeners.js";
 export function ProfileDropdown() {
     const profileTrigger = document.getElementById('user-profile');
     const userDropdown = document.getElementById('user-dropdown');

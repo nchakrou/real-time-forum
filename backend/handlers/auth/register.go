@@ -1,4 +1,4 @@
-package handlers
+package auth
 
 import (
 	"database/sql"
@@ -40,39 +40,39 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 		}
 		if req.FirstName == "" {
 			writeJSONError(w, http.StatusBadRequest, "firstname", "first name is required")
-				return
+			return
 		}
 		if req.LastName == "" {
 			writeJSONError(w, http.StatusBadRequest, "lastname", "last name is required")
 			return
 		}
 		if req.Nickname == "" {
-			writeJSONError(w, http.StatusBadRequest, "nickname","nickname is required")
+			writeJSONError(w, http.StatusBadRequest, "nickname", "nickname is required")
 			return
 		}
 		if req.Age == "" {
-			writeJSONError(w, http.StatusBadRequest, "age","age is required")
+			writeJSONError(w, http.StatusBadRequest, "age", "age is required")
 			return
 		}
 		if req.Email == "" {
-			writeJSONError(w, http.StatusBadRequest, "email","email is required")
+			writeJSONError(w, http.StatusBadRequest, "email", "email is required")
 			return
 		}
 		if req.Password == "" {
-			writeJSONError(w, http.StatusBadRequest, "password","password is required")
+			writeJSONError(w, http.StatusBadRequest, "password", "password is required")
 			return
 		}
 		if req.Gender == "" {
-			writeJSONError(w, http.StatusBadRequest, "gender","gender is required")
+			writeJSONError(w, http.StatusBadRequest, "gender", "gender is required")
 			return
 		}
 		if len(req.Password) < 8 {
-			writeJSONError(w, http.StatusBadRequest, "password","password must be > 8")
+			writeJSONError(w, http.StatusBadRequest, "password", "password must be > 8")
 			return
 		}
 		ageInt, err := strconv.Atoi(req.Age)
 		if err != nil || ageInt <= 0 {
-			writeJSONError(w, http.StatusBadRequest,"age","invalid age")
+			writeJSONError(w, http.StatusBadRequest, "age", "invalid age")
 			return
 		}
 
@@ -128,6 +128,6 @@ func writeJSONError(w http.ResponseWriter, status int, field, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(map[string]interface{}{
-		"error":  message, "field":  field, "status": "error",
+		"error": message, "field": field, "status": "error",
 	})
 }

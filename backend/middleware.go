@@ -5,14 +5,14 @@ import (
 	"net/http"
 )
 
-func GetUserIDFromRequest(DB *sql.DB, r *http.Request) (int64, error) {
+func GetUserIDFromRequest(DB *sql.DB, r *http.Request) (int, error) {
 	c, err := r.Cookie("session_token")
 	if err != nil {
 		return 0, err
 	}
 	token := c.Value
 
-	var userID int64
+	var userID int
 
 	err = DB.QueryRow(
 		"SELECT user_id FROM sessions WHERE token = ? AND expires_at > datetime('now')",

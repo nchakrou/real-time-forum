@@ -6,6 +6,14 @@
     box-sizing: border-box;
 }
 
+html,
+body {
+    height: 100%;
+    overflow: hidden;
+}
+
+
+
 header {
     display: flex;
     justify-content: space-between;
@@ -48,11 +56,13 @@ header h2 {
     display: flex;
     justify-content: space-between;
     gap: 12px;
+    flex: 1;
+    overflow: hidden;
 }
 
 .categories {
-    height: 100vh;
-
+    position: relative;
+    height: 100%;
     width: 25%;
     background: linear-gradient(180deg, rgba(26, 15, 61, 0.8), rgba(15, 5, 41, 0.6));
     backdrop-filter: blur(14px);
@@ -61,6 +71,7 @@ header h2 {
     border-radius: 16px;
     padding: 12px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    overflow-y: hidden;
 }
 
 .categories h2 {
@@ -102,7 +113,6 @@ header h2 {
 }
 
 .posts {
-    min-height: 100vh;
     text-align: center;
     height: 100%;
     width: 50%;
@@ -112,11 +122,13 @@ header h2 {
     border: 1px solid rgba(255, 255, 255, 0.03);
     border-radius: 16px;
     padding: 12px;
+    overflow-y: auto;
+    scrollbar-width: none;
 }
 
 .users {
     text-align: center;
-    height: 100vh;
+    height: 100%;
     width: 25%;
     background: linear-gradient(180deg, rgba(26, 15, 61, 0.8), rgba(15, 5, 41, 0.6));
     backdrop-filter: blur(12px);
@@ -124,6 +136,70 @@ header h2 {
     border: 1px solid rgba(255, 255, 255, 0.03);
     border-radius: 16px;
     padding: 12px;
+    overflow-y: auto;
+}
+
+.list-users {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 0;
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.user-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(4px);
+    border-color: rgba(168, 85, 247, 0.3);
+}
+
+.user-item-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #A855F7, #6366F1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 13px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
+}
+
+.user-item-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.user-item:hover .user-item-name {
+    color: var(--text-main);
+}
+
+.user-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
 }
 
 .postContent {
@@ -445,7 +521,7 @@ li.active:hover {
 
 .Submit_comment {
     display: flex;
-      justify-content: center;
+    justify-content: center;
     align-items: center;
     gap: 8px;
     background: transparent;
@@ -483,22 +559,25 @@ li.active:hover {
     gap: 15px;
     z-index: 1000;
 }
-.notification-dropdown-header{
-   padding: 12px;
-   border-bottom: 2px solid rgba(255, 255, 255, 0.03);
+
+.notification-dropdown-header {
+    padding: 12px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.03);
 }
-.notification-dropdown-header h3{
+
+.notification-dropdown-header h3 {
     font-size: 16px;
     font-weight: 600;
     color: var(--text-main);
 }
-.notification-dropdown-footer{
-      padding: 12px;
-   border-top: 2px solid rgba(255, 255, 255, 0.03); 
+
+.notification-dropdown-footer {
+    padding: 12px;
+    border-top: 2px solid rgba(255, 255, 255, 0.03);
 }
-.notification-list{
+
+.notification-list {
     min-height: 100px;
     max-height: 200px;
     overflow-y: auto;
 }
-

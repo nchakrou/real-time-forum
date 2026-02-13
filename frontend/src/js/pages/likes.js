@@ -1,6 +1,7 @@
 import { headerButtons } from "../core/Listeners/Listeners.js";
 import { createpostsContainer } from "../core/Listeners/postListners.js";
-
+import { Header } from "../components/Header.js";
+import { ProfileDropdown } from "../components/ProfileDropdown.js";
 export async function toggleLike(id, value) {
   try {
     console.log("like :", { id, value });
@@ -36,23 +37,13 @@ export async function toggleLike(id, value) {
 }
 
 const likedPostsPage = `
-<header>
-  <h2>Forum</h2>
-  <div id="header-buttons">
-    <button id="home">Home</button>
-    <button id="createpost">Create Post</button>
-    <button id="myPosts">My Posts</button>
-    <button id="likedPosts">Liked Posts</button>
-    <button id="logout">Logout</button>
-  </div>
-</header>
-<div id="posts-container"></div>
+${Header}
 `;
 
 export async function likedPosts() {
   document.body.innerHTML = likedPostsPage;
   headerButtons();
-
+  ProfileDropdown()
   try {
     const response = await fetch("/api/liked-posts", {
       method: "GET",
@@ -65,7 +56,8 @@ export async function likedPosts() {
     const posts = await response.json();
     createpostsContainer(posts);
   } catch (err) {
-    console.error("Failed to fetch liked posts:", err);
+    console.log(err);
+    
     document.getElementById("posts-container").innerHTML = "<p>Failed to load liked posts.</p>";
   }
 }

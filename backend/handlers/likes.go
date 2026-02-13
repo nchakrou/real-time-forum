@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -21,7 +22,7 @@ type LikeResponse struct {
 
 func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		fmt.Println("like")
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
@@ -157,6 +158,7 @@ func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 			Dislikes:  dislikes,
 			UserValue: userValue,
 		}
+		fmt.Println(resp)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
 	}

@@ -1,20 +1,29 @@
 import { router } from "./core/Router.js";
+import { OpenWS } from "./core/WebSocket/initWs.js";
+export const routes = {
+    "/": () => router("/"),
+    "/createpost": () => router("/createpost"),
+    "/myPosts": () => router("/myPosts"),
+    "/likedPosts": () => router("/likedPosts"),
+    "/chat": () => router("/chat"),
+}
+const path = window.location.pathname
 
-const path =window.location.pathname
 
-    
-const log = await isLogged() 
-if(log) {
-    if (path !== "/register" && path !== "/login") {
-        router(path);
-    }else {
+const log = await isLogged()
+if (log) {
+    OpenWS()
+    if (path === "/register" || path === "/login") {
         router("/");
-    }
-}else {
-
-    if (path === "/regstier" || path === "/login") {
+    } else {
         router(path);
-    }else {
+    }
+} else {
+    if (path === "/register" || path === "/login") {
+        router(path);
+    } else if (!routes[path]) {
+        alert("404 Not Found")
+    } else {
         router("/login");
     }
 }
@@ -29,3 +38,5 @@ async function isLogged() {
     }
     return false
 }
+
+

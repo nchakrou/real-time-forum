@@ -19,6 +19,7 @@ const loginPage = `
 
 export function login() {
     document.body.innerHTML = loginPage;
+    
     registerListener();
     handleLogin();
 }

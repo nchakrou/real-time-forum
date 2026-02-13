@@ -4,8 +4,12 @@ import (
 	"fmt"
 	"forum/backend"
 	"forum/backend/handlers"
+	"forum/backend/handlers/Websocket"
+	"forum/backend/handlers/auth"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/websocket"
 )
 
 var users = map[string]string{
@@ -21,6 +25,9 @@ type login struct {
 func main() {
 
 	db, err := backend.InitDB("forum.db")
+	hub := &Websocket.Hub{
+		Clients: make(map[int][]*websocket.Conn),
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,9 +42,9 @@ func main() {
 		http.ServeFile(w, r, "frontend/"+r.URL.Path)
 	})
 
-	http.HandleFunc("/api/login", handlers.LoginHandler(db))
-	http.HandleFunc("/api/register", handlers.RegisterHandler(db))
-	http.HandleFunc("/api/islogged", handlers.IsLogged(db))
+	http.HandleFunc("/api/login", auth.LoginHandler(db))
+	http.HandleFunc("/api/register", auth.RegisterHandler(db))
+	http.HandleFunc("/api/islogged", auth.IsLogged(db))
 	http.HandleFunc("/api/logout", func(w http.ResponseWriter, r *http.Request) {
 		http.SetCookie(w, &http.Cookie{Name: "session_token", Value: "", MaxAge: -1, Path: "/"})
 	})
@@ -47,6 +54,7 @@ func main() {
 	http.HandleFunc("/api/posts", handlers.GetPostsHandler(db))
 	http.HandleFunc("/api/createpost", handlers.CreatePostHandler(db))
 	http.HandleFunc("/api/myposts", handlers.GetMyPostsHandler(db))
+	http.HandleFunc("/ws", Websocket.WsHandler(db, hub))
 
 	fmt.Println("Server started at http://localhost:8081")
 	log.Fatal(http.ListenAndServe(":8081", nil))

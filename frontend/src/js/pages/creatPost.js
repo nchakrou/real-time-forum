@@ -2,6 +2,7 @@
 import { headerButtons } from "../core/Listeners/Listeners.js";
 import { router } from "../core/Router.js"
 import { Header } from "../components/Header.js";
+import { ProfileDropdown } from "../components/ProfileDropdown.js";
 const createPostPage = `${Header}
 <div class = "app-home">
 <div id = "categories" class = "categories">
@@ -49,6 +50,7 @@ const createPostPage = `${Header}
 export function createPost() {
   document.body.innerHTML = createPostPage
   headerButtons()
+  ProfileDropdown()
   handleCreatePost()
   createPostCategoriesListener()
 }
