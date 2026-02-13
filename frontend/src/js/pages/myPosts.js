@@ -1,6 +1,6 @@
 import { headerButtons ,CategoriesListener} from "../core/Listeners/Listeners.js";
 import { fetchPosts } from "../core/Listeners/postListners.js";
-
+import { ProfileDropdown } from "../components/ProfileDropdown.js";
 const myPostsPage = `
 <header>
 <h2>Forum</h2>
@@ -40,6 +40,7 @@ const myPostsPage = `
 export function myPosts() {
     document.body.innerHTML = myPostsPage
     headerButtons()
+    ProfileDropdown()
     CategoriesListener("/api/myposts")
     fetchPosts("/api/myposts")
 }

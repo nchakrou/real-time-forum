@@ -1,19 +1,10 @@
 import { headerButtons ,CategoriesListener} from "../core/Listeners/Listeners.js";
 import { fetchPosts } from "../core/Listeners/postListners.js";
-
-
+import { Header } from "../components/Header.js";
+import { ProfileDropdown } from "../components/ProfileDropdown.js";
 
 const homePage = `
-<header>
-<h2>Forum</h2>
-<div id  = "header-buttons">
-<button id = "home">Home</button>
-<button id ="createpost">Create Post</button>
-<button id ="myPosts">My Posts</button>
-<button id ="likedPosts">Liked Posts</button>
-<button id = "logout">logout</button>
-</div>
-</header>
+${Header}
 <div class = "app-home">
 <div class = "categories">
   <h2>Categories</h2>
@@ -41,6 +32,7 @@ const homePage = `
 
 export function home() {
   document.body.innerHTML = homePage
+  ProfileDropdown()
   headerButtons()
   CategoriesListener()
   fetchPosts("/api/posts")

@@ -1,16 +1,8 @@
 
 import { headerButtons } from "../core/Listeners/Listeners.js";
 import { router } from "../core/Router.js"
-const createPostPage = `<header>
-<h2>Forum</h2>
-<div id = "header-buttons">
-<button id = "home">Home</button>
-<button id ="createpost">Create Post</button>
-<button id ="myPosts">My Posts</button>
-<button id ="likedPosts">Liked Posts</button>
-<button id = "logout">logout</button>
-</div>
-</header>
+import { Header } from "../components/Header.js";
+const createPostPage = `${Header}
 <div class = "app-home">
 <div id = "categories" class = "categories">
   <h2>Categories</h2>

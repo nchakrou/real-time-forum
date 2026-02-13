@@ -1,6 +1,6 @@
 import { router } from "../Router.js";
 import {fetchPosts} from "./postListners.js"
-const routes = {
+export const routes = {
     home: () => router("/"),
     createpost: () => router("/createpost"),
     myPosts: () => router("/myPosts"),
@@ -12,9 +12,9 @@ const routes = {
 
 export function headerButtons() {
     document.getElementById("header-buttons").addEventListener("click", (e) => {
-        console.log(e.target.id);
-
-        if (routes[e.target.id]) routes[e.target.id]();
+        const action = e.target.closest("button")?.id;
+        
+        if (routes[action]) routes[action]();
     });
 }
 async function Logout() {
