@@ -12,7 +12,11 @@ const path = window.location.pathname
 
 const log = await isLogged()
 if (log) {
-    OpenWS()
+    try {
+        await OpenWS()
+    } catch (e) {
+        console.log(e)
+    }
     if (path === "/register" || path === "/login") {
         router("/");
     } else {

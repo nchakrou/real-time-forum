@@ -31,8 +31,7 @@ ${Header}
 
 export function myPosts() {
     document.body.innerHTML = myPostsPage
-    headerButtons()
-    ProfileDropdown()
-    CategoriesListener("/api/myposts")
+   
+    pagesInit("/api/myposts")
     fetchPosts("/api/myposts")
 }

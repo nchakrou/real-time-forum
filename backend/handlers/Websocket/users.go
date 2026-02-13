@@ -2,7 +2,6 @@ package Websocket
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 
 	"github.com/gorilla/websocket"
@@ -14,8 +13,8 @@ func (h *Hub) OnlineUsers(db *sql.DB, senderID int, conn *websocket.Conn) {
 	res.Type = "online_users"
 	h.mu.Lock()
 	defer h.mu.Unlock()
+
 	for userid := range h.Clients {
-		fmt.Println(userid)
 		var username string
 		if err := db.QueryRow(query, userid).Scan(&username); err != nil {
 			log.Println("Error getting username:", err)

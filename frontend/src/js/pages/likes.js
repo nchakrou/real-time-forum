@@ -1,7 +1,6 @@
-import { headerButtons } from "../core/Listeners/Listeners.js";
 import { createpostsContainer } from "../core/Listeners/postListners.js";
 import { Header } from "../components/Header.js";
-import { ProfileDropdown } from "../components/ProfileDropdown.js";
+import { pagesInit } from "../components/pagesInit.js";
 export async function toggleLike(id, value) {
   try {
     console.log("like :", { id, value });
@@ -9,7 +8,7 @@ export async function toggleLike(id, value) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ value }),
-       credentials: "include" 
+      credentials: "include"
     });
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -42,13 +41,12 @@ ${Header}
 
 export async function likedPosts() {
   document.body.innerHTML = likedPostsPage;
-  headerButtons();
-  ProfileDropdown()
+  pagesInit("/api/liked-posts")
   try {
     const response = await fetch("/api/liked-posts", {
       method: "GET",
       headers: { "Content-Type": "application/json" },
-      credentials : "include"
+      credentials: "include"
     });
 
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -57,7 +55,7 @@ export async function likedPosts() {
     createpostsContainer(posts);
   } catch (err) {
     console.log(err);
-    
+
     document.getElementById("posts-container").innerHTML = "<p>Failed to load liked posts.</p>";
   }
 }
