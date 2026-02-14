@@ -28,7 +28,6 @@ ${Header}
 </div>
 <div class = "users">
   <h2>Users</h2>
-  <p>No users yet</p>
 </div>
 </div>
 `

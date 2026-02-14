@@ -2,8 +2,7 @@ import { router } from "../core/Router.js"
 const loginPage = `
 <div class ="app-auth">
 <div class="login">
-<img src="/src/assets/logo.png" 
- style="width: 100px; margin: 0 auto;">
+<img src="/src/assets/logo.png" class = "logo">
   <h2>Login</h2>
   <p>Welcome back, please enter your details to login</p>
   <form id="login-form">
@@ -19,7 +18,7 @@ const loginPage = `
 
 export function login() {
     document.body.innerHTML = loginPage;
-    
+
     registerListener();
     handleLogin();
 }

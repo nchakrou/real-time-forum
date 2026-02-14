@@ -2,8 +2,7 @@ import { router } from "../core/Router.js";
 const registerPage = `
   <div class ="app-auth">
 <div class="register">
-<img src="/src/assets/logo.png" 
- style="width: 100px; margin: 0 auto;">
+<img src="/src/assets/logo.png" class = "logo">
   <h2>Create Account</h2>
   
   <p>Sing Up to get started</p>
@@ -45,41 +44,41 @@ function hanleRegister() {
     "submit",
     async (event) => {
       event.preventDefault();
-    const first =document.getElementById("firstname").value
-    const last =document.getElementById("lastname").value
-    const nickname= document.getElementById("nickname").value
-    const age = document.getElementById("age").value
-    const email = document.getElementById("email").value
-    const password = document.getElementById("password").value
-    const gender = document.getElementById("gender").value
- 
-    if (!first || !last || !nickname || !age || !email || !password || !gender) {
-      alert("Please fill in all fields.");
-      return;
-    }
-    const userData = {
-      firstName: first,
-      lastName: last,
-      nickname: nickname,  
-      age: age,
-      email: email,
-      password: password,
-      gender: gender       
-    }
-  const requestOptions = {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(userData)
-};
-const response = await fetch('/api/register', requestOptions);
-let err = await response.json()
-if (response.ok) {
-  router('/');
-} else {
-  alert(`Registration failed: `);
-console.log(err);
+      const first = document.getElementById("firstname").value
+      const last = document.getElementById("lastname").value
+      const nickname = document.getElementById("nickname").value
+      const age = document.getElementById("age").value
+      const email = document.getElementById("email").value
+      const password = document.getElementById("password").value
+      const gender = document.getElementById("gender").value
 
-}
-  }
-)
+      if (!first || !last || !nickname || !age || !email || !password || !gender) {
+        alert("Please fill in all fields.");
+        return;
+      }
+      const userData = {
+        firstName: first,
+        lastName: last,
+        nickname: nickname,
+        age: age,
+        email: email,
+        password: password,
+        gender: gender
+      }
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      };
+      const response = await fetch('/api/register', requestOptions);
+      let err = await response.json()
+      if (response.ok) {
+        router('/');
+      } else {
+        alert(`Registration failed: `);
+        console.log(err);
+
+      }
+    }
+  )
 }

@@ -7,6 +7,7 @@ import { likedPosts } from "../pages/likes.js";
 import { chat } from "../pages/chat.js";
 export function router(path) {
     history.pushState({}, "", path);
+    path = window.location.pathname
     if (path === "/register") {
         register()
     } else if (path === "/") {
@@ -20,6 +21,9 @@ export function router(path) {
     } else if (path === "/likedPosts") {
         likedPosts()
     } else if (path === "/chat") {
+
+
         chat()
     }
+    console.log(path)
 }

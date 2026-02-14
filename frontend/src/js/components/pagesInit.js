@@ -8,7 +8,9 @@ export function pagesInit(path = "/") {
     ProfileDropdown()
     ws.send(JSON.stringify({ type: "online_users" }))
     headerButtons()
-    CategoriesListener(path)
+    if (path !== "/chat") {
+        CategoriesListener(path)
+    }
 }
 export function OnlineUsers(users) {
 

@@ -12,6 +12,7 @@ export function OpenWS() {
             const data = JSON.parse(event.data)
             if (data.type === "online_users") {
                 OnlineUsers(data.users)
+                console.log(data.users)
             }
         }
         ws.onclose = () => {

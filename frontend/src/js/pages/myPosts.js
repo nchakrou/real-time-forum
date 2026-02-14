@@ -1,7 +1,6 @@
-import { headerButtons ,CategoriesListener} from "../core/Listeners/Listeners.js";
 import { fetchPosts } from "../core/Listeners/postListners.js";
-import { ProfileDropdown } from "../components/ProfileDropdown.js";
 import { Header } from "../components/Header.js";
+import { pagesInit } from "../components/pagesInit.js";
 const myPostsPage = `
 ${Header}
 <div class = "app-home">
@@ -24,7 +23,6 @@ ${Header}
 </div>
 <div class = "users">
   <h2>Users</h2>
-  <p>No users yet</p>
 </div>
 </div>
 `
