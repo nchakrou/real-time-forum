@@ -50,6 +50,8 @@ func main() {
 	})
 	http.HandleFunc("/api/like", handlers.HandleLike(db, "post"))
 	http.HandleFunc("/api/like-comment", handlers.HandleLike(db, "comment"))
+	http.HandleFunc("/api/add-comment", handlers.HandleAddComment(db))
+	http.HandleFunc("/api/comments", handlers.HandleGetComments(db))
 
 	http.HandleFunc("/api/posts", handlers.GetPostsHandler(db))
 	http.HandleFunc("/api/createpost", handlers.CreatePostHandler(db))

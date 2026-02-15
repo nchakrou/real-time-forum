@@ -67,6 +67,7 @@ export function createpostsContainer(posts) {
             postsContainer.appendChild(postElement)
 
 
+            loadComments(postElement);
         })
         PostButtonsListener()
     }
@@ -89,9 +90,11 @@ async function submitCommentListener(e) {
     const commentInput = post.querySelector(".comment-input");
 
     const commentText = commentInput.value.trim();
-    if (!commentText || commentText === "") {
+    if (!commentText) {
         alert("Comment cannot be empty");
+        return;
     }
+
     const postId = post.dataset.postId;
 
     try {
@@ -99,25 +102,33 @@ async function submitCommentListener(e) {
         formData.append("post_id", postId);
         formData.append("comment", commentText);
 
-        const res = await fetch("/add-comment", {
+        const res = await fetch("/api/add-comment", {
             method: "POST",
             credentials: "include",
             body: formData
         });
 
-        if (!res.ok) return console.error("Failed to add comment");
+        if (!res.ok) {
+            const text = await res.text();
+            console.error("Server error:", text);
+            return;
+        }
 
         const data = await res.json();
         if (data.status === "ok") {
             commentInput.value = "";
-            loadComments(post);
+            const commentsContainer = post.querySelector(".comments");
+            const newComment = document.createElement("p");
+            newComment.innerHTML = `<strong>You:</strong> ${commentText}`;
+            commentsContainer.appendChild(newComment);
         }
 
     } catch (err) {
         console.error("Error adding comment:", err);
     }
-
 }
+
+
 async function likeListener(e) {
     const post = e.target.closest(".post");
     const postId = post.dataset.postId;
@@ -133,21 +144,30 @@ async function dislikeListener(e) {
 
 
 
-function commentListener(e) {
-    const post = e.target.closest(".post");
-    const section = post.querySelector(".comments-container");
-    section.classList.toggle("hidden");
+async function commentListener(e) {
+    const button = e.target.closest(".comment_button");
+    if (!button) return;
 
-    if (!section.classList.contains("hidden") && section.querySelector(".comments-list").children.length === 0) {
-        loadComments(post);
+    const post = button.closest(".post");
+    if (!post) return;
+
+    const section = post.querySelector(".comments-container");
+    if (!section) return;
+
+    const isHidden = section.classList.toggle("hidden");
+
+    if (!isHidden) {
+        await loadComments(post); 
     }
 }
+
+
 async function loadComments(post) {
-    const commentsContainer = post.querySelector(".comments-section .comments-list");
+    const commentsContainer = post.querySelector(".comments");
     const postId = post.dataset.postId;
 
     try {
-        const res = await fetch(`/comments?post_id=${postId}`);
+        const res = await fetch(`/api/comments?post_id=${postId}`);
         if (!res.ok) throw new Error("Failed to fetch comments");
 
         const comments = await res.json();

@@ -8,6 +8,7 @@ import (
 	"forum/backend"
 )
 
+//insert the comment into the db
 func HandleAddComment(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -59,6 +60,16 @@ func HandleAddComment(db *sql.DB) http.HandlerFunc {
 			json.NewEncoder(w).Encode(map[string]string{
 				"status":  "error",
 				"message": "Database error",
+			})
+			return
+		}
+
+		_, err = db.Exec("UPDATE posts SET comments = comments + 1 WHERE id = ?", postID)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{
+				"status":  "error",
+				"message": "Failed to update comments count",
 			})
 			return
 		}
