@@ -48,7 +48,7 @@ const createPostPage = `${Header}
 export function createPost() {
   document.body.innerHTML = createPostPage
     pagesInit()
-  
+  handleCreatePost()
   createPostCategoriesListener()
 }
 function createPostCategoriesListener() {

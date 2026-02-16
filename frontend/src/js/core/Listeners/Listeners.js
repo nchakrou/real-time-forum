@@ -40,7 +40,7 @@ export function CategoriesListener(path = "/api/posts") {
 
         e.target.classList.add("active")
         console.log(`${path}?category=${e.target.textContent}`);
-
+        if (path === "/") path="/api/posts";
         fetchPosts(`${path}?category=${e.target.textContent}`)
     });
 }

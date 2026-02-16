@@ -25,6 +25,8 @@ export async function fetchPosts(path) {
         }
 
     } catch (error) {
+        console.log(error);
+        
         alert("ok", error);
     }
 }
@@ -173,12 +175,14 @@ async function loadComments(post) {
         const comments = await res.json();
 
         commentsContainer.innerHTML = "";
-
-        comments.forEach(c => {
-            const newComment = document.createElement("p");
-            newComment.innerHTML = `<strong>${c.username}:</strong> ${c.content}`;
-            commentsContainer.appendChild(newComment);
-        });
+if (comments&&comments.length>=0){
+    
+    comments.forEach(c => {
+        const newComment = document.createElement("p");
+        newComment.innerHTML = `<strong>${c.username}:</strong> ${c.content}`;
+        commentsContainer.appendChild(newComment);
+    });
+}
 
     } catch (err) {
         console.error("Error loading comments:", err);
