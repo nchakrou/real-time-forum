@@ -5,19 +5,19 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
-	"forum/backend"
 	"log"
 	"net/http"
 	"time"
+
+	"forum/backend"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 func LoginHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		if r.Method != http.MethodPost {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			writeJSONError(w, http.StatusMethodNotAllowed, "method", "method not allowed")
 			return
 		}
 
@@ -27,15 +27,13 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			writeJSONError(w, http.StatusBadRequest, "json", "invalid JSON")
 			return
 		}
-
 		if creds.Username == "" || creds.Password == "" {
-			http.Error(w, "Nickname/email and password required", http.StatusBadRequest)
+			writeJSONError(w, http.StatusBadRequest, "credentials", "username and password required")
 			return
 		}
-
 		var userID int64
 		var passwordHash string
 
@@ -43,33 +41,32 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 			"SELECT id, password FROM users WHERE nickname = ? OR email = ?",
 			creds.Username, creds.Username,
 		).Scan(&userID, &passwordHash)
-
 		if err == sql.ErrNoRows {
-			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+			writeJSONError(w, http.StatusUnauthorized, "credentials", "invalid credentials")
 			return
 		}
 		if err != nil {
-			log.Println("DB error:", err)
-			http.Error(w, "Server error", http.StatusInternalServerError)
+			log.Println("DB error during login:", err)
+			writeJSONError(w, http.StatusInternalServerError, "db", "something went wrong")
 			return
 		}
-
 		if bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(creds.Password)) != nil {
-			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+			writeJSONError(w, http.StatusUnauthorized, "credentials", "invalid credentials")
 			return
 		}
 
 		token := generateRandomToken()
 		exp := time.Now().Add(24 * time.Hour)
 
-		db.Exec("DELETE FROM sessions WHERE user_id = ?", userID)
+		_, _ = db.Exec("DELETE FROM sessions WHERE user_id = ?", userID)
 
 		_, err = db.Exec(
 			"INSERT INTO sessions(token, user_id, expires_at) VALUES (?, ?, ?)",
 			token, userID, exp,
 		)
 		if err != nil {
-			http.Error(w, "Session creation failed", http.StatusInternalServerError)
+			log.Println("Session insert error:", err)
+			writeJSONError(w, http.StatusInternalServerError, "db", "session creation failed")
 			return
 		}
 
@@ -89,6 +86,7 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 		})
 	}
 }
+
 func IsLogged(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, err := backend.GetUserIDFromRequest(db, r)
@@ -97,9 +95,9 @@ func IsLogged(db *sql.DB) http.HandlerFunc {
 			log.Println("Unauthorized:", err)
 			return
 		}
-
 	}
 }
+
 func generateRandomToken() string {
 	b := make([]byte, 32)
 	_, err := rand.Read(b)

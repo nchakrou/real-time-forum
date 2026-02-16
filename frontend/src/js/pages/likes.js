@@ -39,7 +39,7 @@ const likedPostsPage = `
 ${Header}
 `;
 
-export async function likedPosts() {
+export async function  likedPosts() {
   document.body.innerHTML = likedPostsPage;
   pagesInit("/api/liked-posts")
   try {
