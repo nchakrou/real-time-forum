@@ -3,13 +3,31 @@ import { router } from "../core/Router.js"
 import { headerButtons } from "../core/Listeners/Listeners.js"
 import { CategoriesListener } from "../core/Listeners/Listeners.js"
 import { ProfileDropdown } from "../components/ProfileDropdown.js"
+import { isLogged } from "../main.js"
 
 export function pagesInit(path = "/") {
     ProfileDropdown()
+    populateProfile()
     ws.send(JSON.stringify({ type: "online_users" }))
     headerButtons()
     if (path !== "/chat") {
         CategoriesListener(path)
+    }
+}
+async function populateProfile() {
+    try {
+        const [user,log] = await isLogged()
+        if (!log || !user) {
+            throw new Error("User not logged in")
+        }
+        const logo = document.getElementById('user-initials')
+        const Dropdownlogo = document.getElementById('user-initials-dropdown')
+        const username = document.getElementById('user-name-dropdown')
+        if (username) username.textContent = user 
+        if (logo) logo.textContent = user.charAt(0).toUpperCase()
+        if (Dropdownlogo) Dropdownlogo.textContent = user.charAt(0).toUpperCase()
+    } catch (e) {
+        console.log(e)
     }
 }
 export function OnlineUsers(users) {
@@ -37,10 +55,10 @@ export function OnlineUsers(users) {
             router(`/chat?username=${user}`)
         })
 
-        const initial = user.charAt(0).toUpperCase()
+        const avatar = user.charAt(0).toUpperCase()
 
         userItem.innerHTML = `
-      <div class="user-item-avatar">${initial}</div>
+      <div class="user-item-avatar">${avatar}</div>
       <span class="user-item-name">${user}</span>
       <div class="user-status-dropdown"></div>
     `

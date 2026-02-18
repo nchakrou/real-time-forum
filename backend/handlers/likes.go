@@ -28,7 +28,8 @@ func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 			return
 		}
 
-		userID, err := backend.GetUserIDFromRequest(db, r)
+		user, err := backend.GetUserIDFromRequest(db, r)
+		userID := user.ID
 		if err != nil {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
@@ -85,7 +86,6 @@ func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 			userValue = req.Value
 
 		} else if err == nil {
-
 			if existing == req.Value {
 
 				_, err = tx.Exec(
@@ -110,7 +110,6 @@ func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 				}
 				userValue = req.Value
 			}
-
 		} else {
 			http.Error(w, "Database error", http.StatusInternalServerError)
 			return

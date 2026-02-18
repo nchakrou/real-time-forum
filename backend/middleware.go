@@ -5,29 +5,36 @@ import (
 	"net/http"
 )
 
-func GetUserIDFromRequest(DB *sql.DB, r *http.Request) (int, error) {
+type User struct {
+	ID       int    `json:"id"`
+	Nickname string `json:"nickname"`
+}
+
+func GetUserIDFromRequest(DB *sql.DB, r *http.Request) (User, error) {
 	c, err := r.Cookie("session_token")
+	var user User
 	if err != nil {
-		return 0, err
+		return user, err
 	}
 	token := c.Value
 
-	var userID int
-
 	err = DB.QueryRow(
-		"SELECT user_id FROM sessions WHERE token = ? AND expires_at > datetime('now')",
+		`SELECT s.user_id, u.nickname
+FROM sessions s
+JOIN users u ON s.user_id = u.id
+WHERE s.token = ? AND s.expires_at > datetime('now');
+`,
 		token,
-	).Scan(&userID)
+	).Scan(&user.ID, &user.Nickname)
 	if err != nil {
-		return 0, err
+		return user, err
 	}
 
-	return userID, nil
+	return user, nil
 }
 
 func AuthRequired(DB *sql.DB, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		if _, err := GetUserIDFromRequest(DB, r); err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			return

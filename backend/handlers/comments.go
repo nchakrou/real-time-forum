@@ -8,7 +8,7 @@ import (
 	"forum/backend"
 )
 
-//insert the comment into the db
+// insert the comment into the db
 func HandleAddComment(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -22,7 +22,8 @@ func HandleAddComment(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		userID, err := backend.GetUserIDFromRequest(db, r)
+		user, err := backend.GetUserIDFromRequest(db, r)
+		userID := user.ID
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(map[string]string{

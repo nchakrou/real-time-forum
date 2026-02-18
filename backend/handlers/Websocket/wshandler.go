@@ -4,10 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"forum/backend"
 	"log"
 	"net/http"
 	"sync"
+
+	"forum/backend"
 
 	"github.com/gorilla/websocket"
 )
@@ -27,7 +28,7 @@ type response struct {
 	Users     []string `json:"users,omitempty"`
 	From      string   `json:"from,omitempty"`
 	Message   string   `json:"message,omitempty"`
-	Timestamp int64    `json:"timestamp,omitempty"`
+	Timestamp string   `json:"timestamp,omitempty"`
 }
 
 func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
@@ -37,7 +38,8 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 		},
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		userid, err := backend.GetUserIDFromRequest(db, r)
+		user, err := backend.GetUserIDFromRequest(db, r)
+		userid := user.ID
 		if err != nil {
 			log.Println("Error getting user ID from request:", err)
 			w.WriteHeader(http.StatusUnauthorized)
@@ -70,7 +72,9 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 			case "online_users":
 				hub.OnlineUsers(db, userid, conn)
 			case "message":
-				SendPrivateMessage()
+				hub.SendPrivateMessage(db, userid, req.Target, req.Message, user.Nickname)
+			case "getChat":
+				// hub.GetMessages(db, userid, req.Target, conn, user.Nickname)
 			}
 		}
 	}

@@ -39,15 +39,21 @@ export function createpostsContainer(posts) {
         noPosts.textContent = "No posts yet"
         postsContainer.appendChild(noPosts)
     } else {
-        console.log(posts);
 
         posts.forEach((post) => {
             const postElement = document.createElement("div")
             postElement.classList.add("post")
             postElement.dataset.postId = post.id
-            postElement.innerHTML = `
-          <h3>${post.title}</h3>
-          <p>${post.content}</p>
+            const h3 = document.createElement("h3")
+            const p = document.createElement("p")
+            h3.textContent= post.title
+            p.textContent = post.content
+            
+           
+            postElement.appendChild(h3)
+            postElement.appendChild(p)
+            postElement.insertAdjacentHTML("beforeend",`
+          
           <div class = "post-categories">
            ${post.categories.map(cat => `<span class="category-tag">${cat}</span>`).join('')}
           </div>
@@ -65,7 +71,7 @@ export function createpostsContainer(posts) {
           <div class = "comments">
           </div>
           </div>
-        `
+        `)
             postsContainer.appendChild(postElement)
 
 

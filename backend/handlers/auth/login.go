@@ -90,11 +90,15 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 func IsLogged(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID, err := backend.GetUserIDFromRequest(db, r)
-		if err != nil || userID == 0 {
+		if err != nil || userID.ID == 0 {
 			w.WriteHeader(http.StatusUnauthorized)
 			log.Println("Unauthorized:", err)
 			return
 		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"nickname": userID.Nickname,
+		})
 	}
 }
 

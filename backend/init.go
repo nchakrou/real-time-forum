@@ -116,6 +116,15 @@ CREATE TABLE IF NOT EXISTS post_categories (
 	FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
 	FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS messages (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	sender_id INTEGER NOT NULL,
+	receiver_id INTEGER NOT NULL,
+	content TEXT NOT NULL,
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+	FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
+);
 
 CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);

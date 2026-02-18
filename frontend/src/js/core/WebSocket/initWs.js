@@ -13,6 +13,8 @@ export function OpenWS() {
             if (data.type === "online_users") {
                 OnlineUsers(data.users)
                 console.log(data.users)
+            }else if (data.type === "chat_history") {
+                console.log("Chat history:", data.history)
             }
         }
         ws.onclose = () => {

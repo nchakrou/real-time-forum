@@ -857,7 +857,9 @@ li.active:hover {
     transform: rotate(45deg);
     margin-left: -2px;
 }
-
+.CreatePostCategories div.active {
+    background-color: var(--purple-main);
+}
 
 
 @media (max-width: 768px) {

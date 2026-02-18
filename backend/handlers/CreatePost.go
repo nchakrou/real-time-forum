@@ -36,7 +36,8 @@ func CreatePostHandler(db *sql.DB) http.HandlerFunc {
 			log.Println("Error unmarshaling JSON:", err)
 			return
 		}
-		userid, err := backend.GetUserIDFromRequest(db, r)
+		user, err := backend.GetUserIDFromRequest(db, r)
+		userid := user.ID
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			log.Println("Error getting user ID from request:", err)

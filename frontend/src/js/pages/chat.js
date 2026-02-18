@@ -91,5 +91,4 @@ function handleActiveChat(username) {
             router("/chat")
         })
     }
-
 }

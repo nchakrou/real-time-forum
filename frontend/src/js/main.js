@@ -7,40 +7,54 @@ export const routes = {
     "/likedPosts": () => router("/likedPosts"),
     "/chat": () => router("/chat"),
 }
+
 const path = window.location.pathname
 
 
-const log = await isLogged()
-if (log) {
-    try {
-        await OpenWS()
-    } catch (e) {
-        console.log(e)
-    }
-    if (path === "/register" || path === "/login") {
-        router("/");
+export async function init() {
+    console.log("dfsjj");
+    
+    const [user,log] = await isLogged()
+    console.log(log,user);
+    
+    if (log && user) {
+        try {
+            await OpenWS()
+        } catch (e) {
+            console.log(e)
+        }
+        if (path === "/register" || path === "/login") {
+            router("/");
+        } else {
+            router(path);
+        }
     } else {
-        router(path);
+        if (path === "/register" || path === "/login") {
+            router(path);
+        } else if (!routes[path]) {
+            alert("404 Not Found")
+        } else {
+            router("/login");
+        }
     }
-} else {
-    if (path === "/register" || path === "/login") {
-        router(path);
-    } else if (!routes[path]) {
-        alert("404 Not Found")
-    } else {
-        router("/login");
-    }
+    
 }
+init()
 
-async function isLogged() {
+
+export async function isLogged() {
     let req = await fetch("/api/islogged", {
         method: "GET",
         credentials: "include"
     })
+    console.log(req);
+    
     if (req.ok) {
-        return true
+        const data = await req.json()
+        let username = data.nickname
+        return [username,true]
     }
-    return false
+    return ["",false]
 }
 
 

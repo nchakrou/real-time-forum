@@ -3,10 +3,11 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"forum/backend"
 	"log"
 	"net/http"
 	"strings"
+
+	"forum/backend"
 )
 
 func GetMyPostsHandler(db *sql.DB) http.HandlerFunc {
@@ -15,7 +16,8 @@ func GetMyPostsHandler(db *sql.DB) http.HandlerFunc {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			return
 		}
-		userId, err := backend.GetUserIDFromRequest(db, r)
+		user, err := backend.GetUserIDFromRequest(db, r)
+		userId := user.ID
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
