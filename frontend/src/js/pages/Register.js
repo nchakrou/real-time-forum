@@ -1,4 +1,5 @@
 import { router } from "../core/Router.js";
+import { init } from "../main.js"
 const registerPage = `
   <div class ="app-auth">
 <div class="register">
@@ -73,7 +74,7 @@ function hanleRegister() {
       const response = await fetch('/api/register', requestOptions);
       let err = await response.json()
       if (response.ok) {
-        router('/');
+        init()
       } else {
         alert(`Registration failed: `);
         console.log(err);

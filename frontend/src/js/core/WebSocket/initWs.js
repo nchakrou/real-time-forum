@@ -1,4 +1,6 @@
 import { OnlineUsers } from "../../components/pagesInit.js"
+import { message } from "./messages.js"
+import { chatHistory } from "./messages.js"
 export let ws
 export function OpenWS() {
     return new Promise((resolve, reject) => {
@@ -13,8 +15,10 @@ export function OpenWS() {
             if (data.type === "online_users") {
                 OnlineUsers(data.users)
                 console.log(data.users)
-            }else if (data.type === "chat_history") {
-                console.log("Chat history:", data.history)
+            } else if (data.type === "chat_history") {
+                chatHistory(data)
+            } else if (data.type === "message") {
+                message(data)
             }
         }
         ws.onclose = () => {

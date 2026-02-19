@@ -3,7 +3,19 @@ package Websocket
 import (
 	"database/sql"
 	"log"
+
+	"github.com/gorilla/websocket"
 )
+
+type Msg struct {
+	From      string `json:"from"`
+	Message   string `json:"message"`
+	CreatedAt string `json:"CreatedAt"`
+}
+type resChat struct {
+	Type     string `json:"type"`
+	Messages []Msg  `json:"Messages"`
+}
 
 func (hub *Hub) SendPrivateMessage(db *sql.DB, fromID int, toUsername string, message string, fromUsername string) {
 	toID, err := TargetID(db, toUsername)
@@ -39,4 +51,32 @@ func TargetID(db *sql.DB, username string) (int, error) {
 		return 0, err
 	}
 	return id, nil
+}
+func (hub *Hub) GetMessages(db *sql.DB, fromID int, toUsername string, conn *websocket.Conn, fromUsername string) {
+	toID, err := TargetID(db, toUsername)
+	if err != nil {
+		log.Println("Error getting target ID:", err)
+		return
+	}
+	rows, err := db.Query("select u.nickname, m.content, m.created_at from messages m join users u on m.sender_id = u.id where (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?)", fromID, toID, toID, fromID)
+	if err != nil {
+		log.Println("Error getting messages:", err)
+		return
+	}
+	defer rows.Close()
+	var Msgs []Msg
+	for rows.Next() {
+		var msg Msg
+		if err := rows.Scan(&msg.From, &msg.Message, &msg.CreatedAt); err != nil {
+			log.Println("Error scanning message:", err)
+			continue
+		}
+
+		Msgs = append(Msgs, msg)
+	}
+	if err := conn.WriteJSON(resChat{Type: "chat_history", Messages: Msgs}); err != nil {
+		log.Println("Error sending messages:", err)
+		return
+	}
+
 }

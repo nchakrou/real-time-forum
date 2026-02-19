@@ -37,7 +37,7 @@ function handleLogin() {
         const response = await fetch("/api/login", request);
 
         if (response.ok) {
-            router("/")
+            init()
         } else {
             const errorElement = document.getElementById("error");
             errorElement.style.display = "block";

@@ -21,14 +21,14 @@ type request struct {
 	Type      string `json:"type"`
 	Target    string `json:"target,omitempty"`
 	Message   string `json:"message,omitempty"`
-	Timestamp int64  `json:"timestamp,omitempty"`
+	CreatedAt int64  `json:"timestamp,omitempty"`
 }
 type response struct {
 	Type      string   `json:"type"`
 	Users     []string `json:"users,omitempty"`
 	From      string   `json:"from,omitempty"`
 	Message   string   `json:"message,omitempty"`
-	Timestamp string   `json:"timestamp,omitempty"`
+	CreatedAt string   `json:"timestamp,omitempty"`
 }
 
 func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
@@ -74,7 +74,7 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 			case "message":
 				hub.SendPrivateMessage(db, userid, req.Target, req.Message, user.Nickname)
 			case "getChat":
-				// hub.GetMessages(db, userid, req.Target, conn, user.Nickname)
+				hub.GetMessages(db, userid, req.Target, conn, user.Nickname)
 			}
 		}
 	}

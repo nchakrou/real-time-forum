@@ -19,7 +19,6 @@ ${Header}
                 <div class="contact-avatar-lg" id="active-chat-avatar">?</div>
                 <div class="contact-meta">
                     <h4 id="active-chat-name">Select a conversation</h4>
-                    <span class="online-status" id="active-chat-status">Offline</span>
                 </div>
             </div>
             <div id="mobile-back-btn" class="mobile-back-btn">
@@ -63,19 +62,20 @@ export function chat() {
         const username = urlParams.get('username');
         if (username) {
             handleActiveChat(username)
+            sentBtn()
         }
 
     }
 }
 
-function handleActiveChat(username) {
+function handleActiveChat(tagername) {
     if (!ws) {
         alert("WebSocket is not open")
         return
     }
     ws.send(JSON.stringify({
         type: "getChat",
-        target: username
+        target: tagername
     }))
     //mobile handle
     const chatMain = document.getElementById("chat-main")
@@ -91,4 +91,31 @@ function handleActiveChat(username) {
             router("/chat")
         })
     }
+    const chatAvatar = document.getElementById("active-chat-avatar")
+    const chatName = document.getElementById("active-chat-name")
+    chatAvatar.textContent = tagername.charAt(0).toUpperCase()
+    chatName.textContent = tagername
+    const emptyChatState = document.getElementsByClassName("empty-chat-state")[0]
+    emptyChatState.style.display = "none"
+
+}
+function sentBtn() {
+    document.getElementById("chat-send-btn").addEventListener("click", () => {
+        const messageInput = document.getElementById("chat-message-input")
+        const message = messageInput.value
+        if (message) {
+            ws.send(JSON.stringify({
+                type: "message",
+                target: document.getElementById("active-chat-name").textContent,
+                message: message
+            }))
+            messageInput.value = ""
+        }
+        const chatViewport = document.getElementById("chat-viewport")
+        const messageDiv = document.createElement("div")
+        messageDiv.classList.add("Mymessage")
+        messageDiv.textContent = message
+        chatViewport.appendChild(messageDiv)
+    })
+
 }

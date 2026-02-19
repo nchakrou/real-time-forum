@@ -8,15 +8,15 @@ export const routes = {
     "/chat": () => router("/chat"),
 }
 
-const path = window.location.pathname
+const path = window.location.pathname + window.location.search
 
 
 export async function init() {
     console.log("dfsjj");
-    
-    const [user,log] = await isLogged()
-    console.log(log,user);
-    
+
+    const [user, log] = await isLogged()
+    console.log(log, user);
+
     if (log && user) {
         try {
             await OpenWS()
@@ -37,7 +37,7 @@ export async function init() {
             router("/login");
         }
     }
-    
+
 }
 init()
 
@@ -48,13 +48,13 @@ export async function isLogged() {
         credentials: "include"
     })
     console.log(req);
-    
+
     if (req.ok) {
         const data = await req.json()
         let username = data.nickname
-        return [username,true]
+        return [username, true]
     }
-    return ["",false]
+    return ["", false]
 }
 
 
