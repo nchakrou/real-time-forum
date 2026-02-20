@@ -1,24 +1,20 @@
-import { headerButtons, CategoriesListener } from "../core/Listeners/Listeners.js";
 import { fetchPosts } from "../core/Listeners/postListners.js";
 import { Header } from "../components/Header.js";
-import { ProfileDropdown } from "../components/ProfileDropdown.js";
-import { router } from "../core/Router.js";
-import { ws } from "../core/WebSocket/initWs.js";
 import { pagesInit } from "../components/pagesInit.js";
-
+import { Popup } from "../core/Popup.js";
 const homePage = `
 ${Header}
 <div class = "app-home">
 <div class = "categories">
   <h2>Categories</h2>
   <ul id = "categories" class="list-categories">
-  <li>FPS</li>
-  <li>Battle Royale</li>
-  <li>MOBA</li>
-  <li>Esports</li>
-  <li>RPG</li>
-  <li>Strategy</li>
-  <li>Simulation</li>
+  <li data-category="FPS">FPS</li>
+  <li data-category="Battle Royale">Battle Royale</li>
+  <li data-category="MOBA">MOBA</li>
+  <li data-category="Esports">Esports</li>
+  <li data-category="RPG">RPG</li>
+  <li data-category="Strategy">Strategy</li>
+  <li data-category="Simulation">Simulation</li>
   </ul>
 </div>
 <div class = "posts">
@@ -30,12 +26,31 @@ ${Header}
   <h2>Users</h2>
 </div>
 </div>
+<div id ="popup" class="popup">
+<div id ="popup-content">
+<p>test</p>
+</div>
+</div>
 `
 
 export function home() {
   document.body.innerHTML = homePage
+  Popup.show("test")
   pagesInit()
-  fetchPosts("/api/posts")
+  const params = new URLSearchParams(window.location.search)
+  const category = params.get("category")
+  if (!category) {
+    fetchPosts(`/api/posts`)
+    return
+  }
+  const categoryElement = document.querySelector(`[data-category="${category}"]`)
+  if (categoryElement) {
+    categoryElement.classList.add("active")
+  } else {
+    fetchPosts("/api/posts")
+    return
+  }
+  fetchPosts(`/api/posts?category=${category}`)
 }
 
 

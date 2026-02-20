@@ -26,7 +26,7 @@ export async function fetchPosts(path) {
 
     } catch (error) {
         console.log(error);
-        
+
         alert("ok", error);
     }
 }
@@ -46,13 +46,13 @@ export function createpostsContainer(posts) {
             postElement.dataset.postId = post.id
             const h3 = document.createElement("h3")
             const p = document.createElement("p")
-            h3.textContent= post.title
+            h3.textContent = post.title
             p.textContent = post.content
-            
-           
+
+
             postElement.appendChild(h3)
             postElement.appendChild(p)
-            postElement.insertAdjacentHTML("beforeend",`
+            postElement.insertAdjacentHTML("beforeend", `
           
           <div class = "post-categories">
            ${post.categories.map(cat => `<span class="category-tag">${cat}</span>`).join('')}
@@ -99,7 +99,6 @@ async function submitCommentListener(e) {
 
     const commentText = commentInput.value.trim();
     if (!commentText) {
-        alert("Comment cannot be empty");
         return;
     }
 
@@ -165,7 +164,7 @@ async function commentListener(e) {
     const isHidden = section.classList.toggle("hidden");
 
     if (!isHidden) {
-        await loadComments(post); 
+        await loadComments(post);
     }
 }
 
@@ -181,14 +180,14 @@ async function loadComments(post) {
         const comments = await res.json();
 
         commentsContainer.innerHTML = "";
-if (comments&&comments.length>=0){
-    
-    comments.forEach(c => {
-        const newComment = document.createElement("p");
-        newComment.innerHTML = `<strong>${c.username}:</strong> ${c.content}`;
-        commentsContainer.appendChild(newComment);
-    });
-}
+        if (comments && comments.length >= 0) {
+
+            comments.forEach(c => {
+                const newComment = document.createElement("p");
+                newComment.innerHTML = `<strong>${c.username}:</strong> ${c.content}`;
+                commentsContainer.appendChild(newComment);
+            });
+        }
 
     } catch (err) {
         console.error("Error loading comments:", err);

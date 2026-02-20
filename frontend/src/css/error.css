@@ -1,0 +1,128 @@
+.error-page-container {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, #0f0529 0%, #030014 100%);
+    color: var(--text-main);
+    font-family: 'Poppins', sans-serif;
+
+}
+
+
+.error-content {
+    text-align: center;
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 32px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    max-width: 500px;
+    width: 90%;
+}
+
+.error-code {
+    font-size: 150px;
+    font-weight: 900;
+    line-height: 1;
+    margin: 0;
+    background: linear-gradient(135deg, #ff2d55 0%, #A855F7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 30px rgba(255, 45, 85, 0.3));
+    font-family: 'Archivo Black', sans-serif;
+    animation: pulse-glow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 30px rgba(255, 45, 85, 0.3));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 50px rgba(168, 85, 247, 0.5));
+    }
+}
+
+.error-message {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 20px 0 10px;
+    color: var(--text-main);
+}
+
+.error-description {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.home-btn {
+    align-items: center;
+    gap: 10px;
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #7C3AED 0%, #6366F1 100%);
+    color: white;
+    border-radius: 14px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+}
+
+.home-btn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 10px 20px rgba(124, 58, 237, 0.4);
+    filter: brightness(1.1);
+}
+
+@media (max-width: 768px) {
+    .error-code {
+        font-size: 120px;
+    }
+
+    .error-message {
+        font-size: 20px;
+    }
+
+    .error-content {
+        padding: 30px;
+    }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 480px) {
+    .error-code {
+        font-size: 80px;
+    }
+
+    .error-message {
+        font-size: 18px;
+        margin: 15px 0 8px;
+    }
+
+    .error-description {
+        font-size: 14px;
+        margin-bottom: 25px;
+    }
+
+    .error-content {
+        padding: 20px;
+        border-radius: 24px;
+        width: 95%;
+    }
+
+    .home-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 20px;
+    }
+}

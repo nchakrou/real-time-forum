@@ -20,7 +20,7 @@ export function headerButtons() {
     document.getElementById("header-buttons").addEventListener("click", (e) => {
         const action = e.target.closest("button")?.id;
         console.log(action);
-        
+
         if (headerButtonsRoutes[action]) headerButtonsRoutes[action]();
     });
 }
@@ -39,9 +39,7 @@ export function CategoriesListener(path = "/api/posts") {
         categories.forEach((cat) => cat.classList.remove("active"));
 
         e.target.classList.add("active")
-        console.log(`${path}?category=${e.target.textContent}`);
-        if (path === "/") path="/api/posts";
-        fetchPosts(`${path}?category=${e.target.textContent}`)
+        router(`${path}?category=${e.target.textContent}`)
     });
 }
 

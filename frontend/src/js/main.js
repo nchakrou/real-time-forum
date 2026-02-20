@@ -1,5 +1,7 @@
 import { router } from "./core/Router.js";
 import { OpenWS } from "./core/WebSocket/initWs.js";
+import { ErrorPage } from "./pages/Error.js";
+
 export const routes = {
     "/": () => router("/"),
     "/createpost": () => router("/createpost"),
@@ -32,7 +34,7 @@ export async function init() {
         if (path === "/register" || path === "/login") {
             router(path);
         } else if (!routes[path]) {
-            alert("404 Not Found")
+            ErrorPage("404 Not Found", "404");
         } else {
             router("/login");
         }

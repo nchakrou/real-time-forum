@@ -33,17 +33,30 @@ function MessageNotification(username) {
 }
 export function chatHistory(data) {
     const chatViewport = document.getElementById("chat-viewport")
-    data.Messages.forEach(message => {
-        const messageDiv = document.createElement("div")
-        const target = new URLSearchParams(window.location.search).get("username")
-        console.log("hadi",message.from, target);
-
-        if (message.from === target) {
-            messageDiv.classList.add("message")
-        } else {
-            messageDiv.classList.add("Mymessage")
-        }
-        messageDiv.textContent = message.message
-        chatViewport.appendChild(messageDiv)
-    })
+    if (data.Messages && data.Messages.length > 0) {
+        
+        data.Messages.forEach(message => {
+            const messageDiv = document.createElement("div")
+            const target = new URLSearchParams(window.location.search).get("username")
+            console.log("hadi",message.from, target);
+            
+            if (message.from === target) {
+                messageDiv.classList.add("message")
+            } else {
+                messageDiv.classList.add("Mymessage")
+            }
+            messageDiv.textContent = message.message
+            chatViewport.appendChild(messageDiv)
+        })
+    }else{
+        chatViewport.innerHTML = `
+        <div class="empty-chat-state">
+            <div class="empty-chat-icon">
+                <img src="src/assets/chat.svg" alt="Chat Icon">
+            </div>
+            <h3>No messages yet</h3>
+            <p>Start a conversation</p>
+        </div>
+        `
+    }
 }

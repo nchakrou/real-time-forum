@@ -30,6 +30,6 @@ ${Header}
 export function myPosts() {
     document.body.innerHTML = myPostsPage
    
-    pagesInit("/api/myposts")
+    pagesInit("/myPosts")
     fetchPosts("/api/myposts")
 }
