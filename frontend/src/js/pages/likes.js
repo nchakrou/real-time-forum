@@ -1,6 +1,6 @@
 import { createpostsContainer } from "../core/Listeners/postListners.js";
 import { Header } from "../components/Header.js";
-import { pagesInit } from "../components/pagesInit.js";
+
 export async function toggleLike(id, value) {
   try {
     console.log("like :", { id, value });
@@ -20,7 +20,6 @@ export async function toggleLike(id, value) {
       console.error("Post not found for id:", id);
       return;
     }
-
     const likeBtn = post.querySelector(".like_button");
     const dislikeBtn = post.querySelector(".dislike_button");
 
@@ -37,25 +36,41 @@ export async function toggleLike(id, value) {
 
 const likedPostsPage = `
 ${Header}
+<main>
+  <div id="posts-container"></div>
+</main>
 `;
 
-export async function  likedPosts() {
+export async function likedPosts() {
   document.body.innerHTML = likedPostsPage;
-  pagesInit("/api/liked-posts")
+
   try {
     const response = await fetch("/api/liked-posts", {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
       credentials: "include"
     });
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
 
     const posts = await response.json();
+
+    const postsContainer = document.getElementById("posts-container");
+    if (!postsContainer) {
+      console.error("posts-container not found in DOM!");
+      return;
+    }
+    if (!Array.isArray(posts) || posts.length === 0) {
+      postsContainer.innerHTML = "<p>No liked posts found.</p>";
+      return;
+    }
     createpostsContainer(posts);
   } catch (err) {
-    console.log(err);
-
-    document.getElementById("posts-container").innerHTML = "<p>Failed to load liked posts.</p>";
+    console.error("Liked posts error:", err);
+    const postsContainer = document.getElementById("posts-container");
+    if (postsContainer) {
+      postsContainer.innerHTML = "<p>Failed to load liked posts.</p>";
+    }
   }
 }

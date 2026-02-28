@@ -1,4 +1,5 @@
 import { router } from "../core/Router.js"
+import { init } from "../main.js";
 const loginPage = `
 <div class ="app-auth">
 <div class="login">

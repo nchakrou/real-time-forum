@@ -48,6 +48,7 @@ func main() {
 	http.HandleFunc("/api/logout", func(w http.ResponseWriter, r *http.Request) {
 		http.SetCookie(w, &http.Cookie{Name: "session_token", Value: "", MaxAge: -1, Path: "/"})
 	})
+	http.HandleFunc("/api/liked-posts", handlers.HandleLikedPosts(db))
 	http.HandleFunc("/api/like", handlers.HandleLike(db, "post"))
 	http.HandleFunc("/api/like-comment", handlers.HandleLike(db, "comment"))
 	http.HandleFunc("/api/add-comment", handlers.HandleAddComment(db))

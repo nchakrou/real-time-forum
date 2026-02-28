@@ -55,7 +55,7 @@ export function createpostsContainer(posts) {
             postElement.insertAdjacentHTML("beforeend", `
           
           <div class = "post-categories">
-           ${post.categories.map(cat => `<span class="category-tag">${cat}</span>`).join('')}
+          ${(post.categories || []).map(cat => `<span class="category-tag">${cat}</span>`).join('')}
           </div>
           <div class= "post-buttons">
           <button type="submit" class = "like_button"><img src="../src/assets/like.svg" alt="like"> <span>${post.likes}</span></button>
