@@ -34,15 +34,16 @@ export async function toggleLike(id, value) {
   }
 }
 
-const likedPostsPage = `
-${Header}
-<main>
-  <div id="posts-container"></div>
-</main>
-`;
 
 export async function likedPosts() {
-  document.body.innerHTML = likedPostsPage;
+  let main = document.querySelector("main");
+
+  if (!main) {
+    main = document.createElement("main");
+    document.body.appendChild(main);
+  }
+
+  main.innerHTML = `<div id="posts-container"></div>`;
 
   try {
     const response = await fetch("/api/liked-posts", {
@@ -53,19 +54,17 @@ export async function likedPosts() {
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
-
     const posts = await response.json();
 
     const postsContainer = document.getElementById("posts-container");
-    if (!postsContainer) {
-      console.error("posts-container not found in DOM!");
-      return;
-    }
+
     if (!Array.isArray(posts) || posts.length === 0) {
       postsContainer.innerHTML = "<p>No liked posts found.</p>";
       return;
     }
+
     createpostsContainer(posts);
+
   } catch (err) {
     console.error("Liked posts error:", err);
     const postsContainer = document.getElementById("posts-container");
