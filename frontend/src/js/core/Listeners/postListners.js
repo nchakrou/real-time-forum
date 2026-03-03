@@ -13,15 +13,17 @@ export const states = {
   isEnd: false,
 };
 export async function fetchPosts(path) {
-  if (states.isEnd) return;
+    if (states.isEnd) return;
+    console.log("fetching posts", states.offset, path, states.isEnd);
+  
+  const isFirstLoad = states.offset === 0;
   try {
-    if (path.includes("?")) {
-      path += `&offset=${states.offset}`;
-    } else {
-      path += `?offset=${states.offset}`;
-    }
-    console.log("dfg", path);
-    const response = await fetch(path, {
+    let fetchPath = path;
+    const url = new URL(path, window.location.origin);
+    url.searchParams.set("offset", states.offset);
+    fetchPath = url.pathname + url.search;
+
+    const response = await fetch(fetchPath, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -31,9 +33,8 @@ export async function fetchPosts(path) {
     if (response.ok) {
       const posts = await response.json();
       states.offset += 10;
-
       states.isEnd = posts.IsEnd;
-      createpostsContainer(posts.Posts);
+      createpostsContainer(posts.Posts, isFirstLoad);
     } else {
       throw new Error(response);
     }
@@ -41,13 +42,17 @@ export async function fetchPosts(path) {
     alert("ok", error);
   }
 }
-export function createpostsContainer(posts) {
+export function createpostsContainer(posts, isFirstLoad = false) {
   const postsContainer = document.getElementById("posts-container");
-  postsContainer.innerHTML = "";
+  if (isFirstLoad) {
+    postsContainer.innerHTML = "";
+  }
   if (!posts || posts.length === 0) {
-    const noPosts = document.createElement("p");
-    noPosts.textContent = "No posts yet";
-    postsContainer.appendChild(noPosts);
+    if (isFirstLoad) {
+      const noPosts = document.createElement("p");
+      noPosts.textContent = "No posts yet";
+      postsContainer.appendChild(noPosts);
+    }
   } else {
     posts.forEach((post) => {
       const postElement = document.createElement("div");
@@ -70,11 +75,11 @@ export function createpostsContainer(posts) {
           <div class= "post-buttons">
           <button type="submit" class = "like_button"><img src="../src/assets/like.svg" alt="like"> <span>${post.likes}</span></button>
           <button type="submit" class = "dislike_button"><img src="../src/assets/dislike.svg" alt="dislike"> <span>${post.dislikes}</span></button>
-          <button type="submit" class = "comment_button"><img src="../src/assets/comment.svg" alt="comment"> <span> ${post.comments}</span></button>
+          <button type="submit" class = "comment_button"><img src="../src/assets/comment.svg" alt="comment"> <span>${post.comments}</span></button>
           </div>
           <div class = "comments-container hidden">
           <div class = "comments-section">
-          <input class = "comment-input" type="text" placeholder="Write a comment...">
+          <input type="text" class = "comment-input" placeholder="Add a comment...">
           <button type="submit" class = "Submit_comment"><img src="../src/assets/send.svg" alt="send"></button>
           </div>
 

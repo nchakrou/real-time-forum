@@ -1,9 +1,8 @@
-import { fetchPosts } from "../core/Listeners/postListners.js";
+import { fetchPosts, states } from "../core/Listeners/postListners.js";
+import { throttle } from "../utils/throttle.js";
 import { Header } from "../components/Header.js";
 import { pagesInit } from "../components/pagesInit.js";
 import { Popup } from "../components/Popup.js";
-
-
 
 const homePage = `
 ${Header}
@@ -42,18 +41,29 @@ export function home() {
   pagesInit();
   const params = new URLSearchParams(window.location.search);
   const category = params.get("category");
-  if (!category) {
-    fetchPosts(`/api/posts`);
-    return;
-  }
   const categoryElement = document.querySelector(
     `[data-category="${category}"]`,
   );
   if (categoryElement) {
     categoryElement.classList.add("active");
+    fetchPosts(`/api/posts?category=${category}`);
   } else {
     fetchPosts("/api/posts");
-    return;
   }
-  fetchPosts(`/api/posts?category=${category}`);
+
+  // Infinite Scroll Listener
+  const postsContainer = document.querySelector(".posts");
+  if (postsContainer) {
+    postsContainer.addEventListener("scroll", () => {
+      const { scrollTop, scrollHeight, clientHeight } = postsContainer;
+      console.log(scrollTop + clientHeight - scrollHeight - 200);
+
+      if (scrollTop + clientHeight >= scrollHeight - 200) {
+        const path = category
+          ? `/api/posts?category=${category}`
+          : "/api/posts";
+        fetchPosts(path);
+      }
+    });
+  }
 }

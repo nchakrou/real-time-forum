@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -47,7 +48,7 @@ func GetPostsHandler(db *sql.DB) http.HandlerFunc {
 		GROUP BY p.id 
 		ORDER BY p.created_at DESC
 	LIMIT 10 OFFSET ?
-		`, offset+5)
+		`, offset)
 
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -102,6 +103,7 @@ LIMIT 10 OFFSET ?
 			posts.Posts = append(posts.Posts, post)
 		}
 		if len(posts.Posts) < 10 {
+			fmt.Println("end of posts", len(posts.Posts), offset)
 			posts.IsEnd = true
 		}
 
