@@ -125,6 +125,19 @@ CREATE TABLE IF NOT EXISTS messages (
 	FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
 	FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender_id INTEGER NOT NULL,
+    receiver_id INTEGER NOT NULL,
+    type TEXT NOT NULL,              
+    content TEXT NOT NULL,            
+    post_id INTEGER,                  
+    is_read BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES users(id),
+    FOREIGN KEY (receiver_id) REFERENCES users(id),
+    FOREIGN KEY (post_id) REFERENCES posts(id)
+);
 
 CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);

@@ -324,7 +324,9 @@ li.active:hover {
     gap: 12px;
     align-items: center;
 }
-
+.notification-wrapper {
+    position: relative;
+}
 .notification-btn {
     position: relative;
     background: transparent;

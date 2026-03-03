@@ -1,6 +1,8 @@
 import { OnlineUsers } from "../../components/pagesInit.js"
 import { message } from "./messages.js"
 import { chatHistory } from "./messages.js"
+import { showNotification } from "./shownotification.js";
+
 export let ws
 export function OpenWS() {
     return new Promise((resolve, reject) => {
@@ -19,6 +21,8 @@ export function OpenWS() {
                 chatHistory(data)
             } else if (data.type === "message") {
                 message(data)
+            } else if (data.type === "notification") {
+                showNotification(data)
             }
         }
         ws.onclose = () => {

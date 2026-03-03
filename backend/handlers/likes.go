@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"forum/backend"
+	"forum/backend/handlers/Websocket"
 )
 
 type LikeRequest struct {
@@ -20,7 +21,7 @@ type LikeResponse struct {
 	UserValue int `json:"userValue"`
 }
 
-func HandleLike(db *sql.DB, target string) http.HandlerFunc {
+func HandleLike(hub *Websocket.Hub, db *sql.DB, target string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("like")
 		if r.Method != http.MethodPost {
@@ -151,6 +152,24 @@ func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 		if err = tx.Commit(); err != nil {
 			http.Error(w, "Database error", http.StatusInternalServerError)
 			return
+		}
+		if target == "post" && userValue == 1 {
+			var ownerID int
+			err := db.QueryRow("SELECT user_id FROM posts WHERE id = ?", id).Scan(&ownerID)
+			if err == nil && ownerID != userID {
+				var likerName string
+
+				db.QueryRow("SELECT nickname FROM users WHERE id = ?", userID).Scan(&likerName)
+				content := " liked your post"
+				hub.SendNotification(
+					db,
+					userID,
+					ownerID,
+					likerName,
+					content,
+					id,
+				)
+			}
 		}
 		resp := LikeResponse{
 			Likes:     likes,
