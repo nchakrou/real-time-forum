@@ -1,61 +1,71 @@
 import { toggleLike } from "../../pages/likes.js";
 
 export const postButtons = {
-    like_button: (e) => likeListener(e),
-    dislike_button: (e) => dislikeListener(e),
-    comment_button: (e) => commentListener(e),
-    Submit_comment: (e) => submitCommentListener(e)
-}
+  like_button: (e) => likeListener(e),
+  dislike_button: (e) => dislikeListener(e),
+  comment_button: (e) => commentListener(e),
+  Submit_comment: (e) => submitCommentListener(e),
+};
 
-
+export const states = {
+  offset: 0,
+  path: "",
+  isEnd: false,
+};
 export async function fetchPosts(path) {
-    try {
-        const response = await fetch(path, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
-
-        if (response.ok) {
-            const posts = await response.json();
-            createpostsContainer(posts);
-        } else {
-            throw new Error(response);
-        }
-
-    } catch (error) {
-        console.log(error);
-
-        alert("ok", error);
+  if (states.isEnd) return;
+  try {
+    if (path.includes("?")) {
+      path += `&offset=${states.offset}`;
+    } else {
+      path += `?offset=${states.offset}`;
     }
+    console.log("dfg", path);
+    const response = await fetch(path, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      const posts = await response.json();
+      states.offset += 10;
+
+      states.isEnd = posts.IsEnd;
+      createpostsContainer(posts.Posts);
+    } else {
+      throw new Error(response);
+    }
+  } catch (error) {
+    alert("ok", error);
+  }
 }
 export function createpostsContainer(posts) {
-    const postsContainer = document.getElementById("posts-container")
-    postsContainer.innerHTML = ""
-    if (!posts) {
+  const postsContainer = document.getElementById("posts-container");
+  postsContainer.innerHTML = "";
+  if (!posts || posts.length === 0) {
+    const noPosts = document.createElement("p");
+    noPosts.textContent = "No posts yet";
+    postsContainer.appendChild(noPosts);
+  } else {
+    posts.forEach((post) => {
+      const postElement = document.createElement("div");
+      postElement.classList.add("post");
+      postElement.dataset.postId = post.id;
+      const h3 = document.createElement("h3");
+      const p = document.createElement("p");
+      h3.textContent = post.title;
+      p.textContent = post.content;
 
-        const noPosts = document.createElement("p")
-        noPosts.textContent = "No posts yet"
-        postsContainer.appendChild(noPosts)
-    } else {
-
-        posts.forEach((post) => {
-            const postElement = document.createElement("div")
-            postElement.classList.add("post")
-            postElement.dataset.postId = post.id
-            const h3 = document.createElement("h3")
-            const p = document.createElement("p")
-            h3.textContent = post.title
-            p.textContent = post.content
-
-
-            postElement.appendChild(h3)
-            postElement.appendChild(p)
-            postElement.insertAdjacentHTML("beforeend", `
+      postElement.appendChild(h3);
+      postElement.appendChild(p);
+      postElement.insertAdjacentHTML(
+        "beforeend",
+        `
           
           <div class = "post-categories">
-          ${(post.categories || []).map(cat => `<span class="category-tag">${cat}</span>`).join('')}
+          ${(post.categories || []).map((cat) => `<span class="category-tag">${cat}</span>`).join("")}
           </div>
           <div class= "post-buttons">
           <button type="submit" class = "like_button"><img src="../src/assets/like.svg" alt="like"> <span>${post.likes}</span></button>
@@ -71,125 +81,118 @@ export function createpostsContainer(posts) {
           <div class = "comments">
           </div>
           </div>
-        `)
-            postsContainer.appendChild(postElement)
+        `,
+      );
+      postsContainer.appendChild(postElement);
 
-
-            loadComments(postElement);
-        })
-        PostButtonsListener()
-    }
+      loadComments(postElement);
+    });
+    PostButtonsListener();
+  }
 }
 export function PostButtonsListener() {
-    const postsContainer = document.getElementById("posts-container");
+  const postsContainer = document.getElementById("posts-container");
 
-    const clone = postsContainer.cloneNode(true);
-    postsContainer.parentNode.replaceChild(clone, postsContainer);
+  const clone = postsContainer.cloneNode(true);
+  postsContainer.parentNode.replaceChild(clone, postsContainer);
 
-    clone.addEventListener("click", (e) => {
-        const button = e.target.closest("button");
-        if (!button) return;
-        const buttonClass = button.classList[0];
-        if (postButtons[buttonClass]) postButtons[buttonClass](e);
-    });
+  clone.addEventListener("click", (e) => {
+    const button = e.target.closest("button");
+    if (!button) return;
+    const buttonClass = button.classList[0];
+    if (postButtons[buttonClass]) postButtons[buttonClass](e);
+  });
 }
 async function submitCommentListener(e) {
-    const post = e.target.closest(".post");
-    const commentInput = post.querySelector(".comment-input");
+  const post = e.target.closest(".post");
+  const commentInput = post.querySelector(".comment-input");
 
-    const commentText = commentInput.value.trim();
-    if (!commentText) {
-        return;
+  const commentText = commentInput.value.trim();
+  if (!commentText) {
+    return;
+  }
+
+  const postId = post.dataset.postId;
+
+  try {
+    const formData = new FormData();
+    formData.append("post_id", postId);
+    formData.append("comment", commentText);
+
+    const res = await fetch("/api/add-comment", {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Server error:", text);
+      return;
     }
 
-    const postId = post.dataset.postId;
-
-    try {
-        const formData = new FormData();
-        formData.append("post_id", postId);
-        formData.append("comment", commentText);
-
-        const res = await fetch("/api/add-comment", {
-            method: "POST",
-            credentials: "include",
-            body: formData
-        });
-
-        if (!res.ok) {
-            const text = await res.text();
-            console.error("Server error:", text);
-            return;
-        }
-
-        const data = await res.json();
-        if (data.status === "ok") {
-            commentInput.value = "";
-            const commentsContainer = post.querySelector(".comments");
-            const newComment = document.createElement("p");
-            newComment.innerHTML = `<strong>You:</strong> ${commentText}`;
-            commentsContainer.appendChild(newComment);
-        }
-
-    } catch (err) {
-        console.error("Error adding comment:", err);
+    const data = await res.json();
+    if (data.status === "ok") {
+      commentInput.value = "";
+      const commentsContainer = post.querySelector(".comments");
+      const newComment = document.createElement("p");
+      newComment.innerHTML = `<strong>You:</strong> ${commentText}`;
+      commentsContainer.appendChild(newComment);
     }
+  } catch (err) {
+    console.error("Error adding comment:", err);
+  }
 }
 
-
 async function likeListener(e) {
-    const post = e.target.closest(".post");
-    const postId = post.dataset.postId;
-    console.log("like click, postid =", postId);
-    await toggleLike(postId, 1);
+  const post = e.target.closest(".post");
+  const postId = post.dataset.postId;
+  console.log("like click, postid =", postId);
+  await toggleLike(postId, 1);
 }
 
 async function dislikeListener(e) {
-    const post = e.target.closest(".post");
-    const postId = post.dataset.postId;
-    await toggleLike(postId, -1);
+  const post = e.target.closest(".post");
+  const postId = post.dataset.postId;
+  await toggleLike(postId, -1);
 }
-
-
 
 async function commentListener(e) {
-    const button = e.target.closest(".comment_button");
-    if (!button) return;
+  const button = e.target.closest(".comment_button");
+  if (!button) return;
 
-    const post = button.closest(".post");
-    if (!post) return;
+  const post = button.closest(".post");
+  if (!post) return;
 
-    const section = post.querySelector(".comments-container");
-    if (!section) return;
+  const section = post.querySelector(".comments-container");
+  if (!section) return;
 
-    const isHidden = section.classList.toggle("hidden");
+  const isHidden = section.classList.toggle("hidden");
 
-    if (!isHidden) {
-        await loadComments(post);
-    }
+  if (!isHidden) {
+    await loadComments(post);
+  }
 }
 
-
 async function loadComments(post) {
-    const commentsContainer = post.querySelector(".comments");
-    const postId = post.dataset.postId;
+  const commentsContainer = post.querySelector(".comments");
+  const postId = post.dataset.postId;
 
-    try {
-        const res = await fetch(`/api/comments?post_id=${postId}`);
-        if (!res.ok) throw new Error("Failed to fetch comments");
+  try {
+    const res = await fetch(`/api/comments?post_id=${postId}`);
+    if (!res.ok) throw new Error("Failed to fetch comments");
 
-        const comments = await res.json();
+    const comments = await res.json();
 
-        commentsContainer.innerHTML = "";
-        if (comments && comments.length >= 0) {
-
-            comments.forEach(c => {
-                const newComment = document.createElement("p");
-                newComment.innerHTML = `<strong>${c.username}:</strong> ${c.content}`;
-                commentsContainer.appendChild(newComment);
-            });
-        }
-
-    } catch (err) {
-        console.error("Error loading comments:", err);
+    commentsContainer.innerHTML = "";
+    if (comments && comments.length >= 0) {
+      comments.forEach((c) => {
+        const newComment = document.createElement("p");
+        newComment.innerHTML = `<strong>${c.username}:</strong> ${c.content}`;
+        commentsContainer.appendChild(newComment);
+      });
     }
+  } catch (err) {
+    console.error("Error loading comments:", err);
+  }
 }

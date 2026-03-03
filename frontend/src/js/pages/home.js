@@ -1,7 +1,10 @@
 import { fetchPosts } from "../core/Listeners/postListners.js";
 import { Header } from "../components/Header.js";
 import { pagesInit } from "../components/pagesInit.js";
-import { Popup } from "../core/Popup.js";
+import { Popup } from "../components/Popup.js";
+
+
+
 const homePage = `
 ${Header}
 <div class = "app-home">
@@ -31,29 +34,26 @@ ${Header}
 <p>test</p>
 </div>
 </div>
-`
+`;
 
 export function home() {
-  document.body.innerHTML = homePage
-  Popup.show("test")
-  pagesInit()
-  const params = new URLSearchParams(window.location.search)
-  const category = params.get("category")
+  document.body.innerHTML = homePage;
+  Popup.show("test");
+  pagesInit();
+  const params = new URLSearchParams(window.location.search);
+  const category = params.get("category");
   if (!category) {
-    fetchPosts(`/api/posts`)
-    return
+    fetchPosts(`/api/posts`);
+    return;
   }
-  const categoryElement = document.querySelector(`[data-category="${category}"]`)
+  const categoryElement = document.querySelector(
+    `[data-category="${category}"]`,
+  );
   if (categoryElement) {
-    categoryElement.classList.add("active")
+    categoryElement.classList.add("active");
   } else {
-    fetchPosts("/api/posts")
-    return
+    fetchPosts("/api/posts");
+    return;
   }
-  fetchPosts(`/api/posts?category=${category}`)
+  fetchPosts(`/api/posts?category=${category}`);
 }
-
-
-
-
-

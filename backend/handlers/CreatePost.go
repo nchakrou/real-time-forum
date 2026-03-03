@@ -13,6 +13,7 @@ type post struct {
 	Title      string `json:"title"`
 	Content    string `json:"content"`
 	Categories []int  `json:"categories"`
+	IsEnd      bool   `json:"is_end"`
 }
 
 func CreatePostHandler(db *sql.DB) http.HandlerFunc {

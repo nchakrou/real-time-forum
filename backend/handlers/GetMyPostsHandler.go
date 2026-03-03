@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"forum/backend"
@@ -22,7 +23,13 @@ func GetMyPostsHandler(db *sql.DB) http.HandlerFunc {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-
+		offsetstr := r.URL.Query().Get("offset")
+		offset, err := strconv.Atoi(offsetstr)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			log.Println("Error converting offset to integer:", err)
+			return
+		}
 		rows, err := db.Query(`
 		SELECT 
 		p.id, p.title, p.content, p.likes, p.dislikes, p.comments,
@@ -32,15 +39,22 @@ func GetMyPostsHandler(db *sql.DB) http.HandlerFunc {
 	 JOIN categories c ON c.id = pc.category_id
 	WHERE p.user_id = ?
 	GROUP BY p.id
-	ORDER BY p.created_at DESC
-		`, userId)
+	ORDER BY p.created_at DESC 
+	LIMIT 10 OFFSET ?
+		`, userId, offset)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			log.Println("Error querying posts:", err)
 			return
 		}
 		defer rows.Close()
-		var posts []Post
+		var posts = struct {
+			Posts []Post
+			IsEnd bool
+		}{
+			Posts: []Post{},
+			IsEnd: false,
+		}
 		for rows.Next() {
 			var post Post
 			var category string
@@ -51,7 +65,10 @@ func GetMyPostsHandler(db *sql.DB) http.HandlerFunc {
 			}
 
 			post.Categories = strings.Split(category, ",")
-			posts = append(posts, post)
+			posts.Posts = append(posts.Posts, post)
+		}
+		if len(posts.Posts) < 10 {
+			posts.IsEnd = true
 		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(posts)

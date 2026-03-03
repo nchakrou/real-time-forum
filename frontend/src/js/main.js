@@ -14,8 +14,6 @@ const path = window.location.pathname + window.location.search
 
 
 export async function init() {
-    console.log("dfsjj");
-
     const [user, log] = await isLogged()
     console.log(log, user);
 

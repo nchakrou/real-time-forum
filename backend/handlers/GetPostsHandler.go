@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -25,9 +26,16 @@ func GetPostsHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		category := r.URL.Query().Get("category")
-		var rows *sql.Rows
 		var err error
+		category := r.URL.Query().Get("category")
+		offsetstr := r.URL.Query().Get("offset")
+		offset, err := strconv.Atoi(offsetstr)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		var rows *sql.Rows
 		if category == "" {
 			rows, err = db.Query(`
 		SELECT 
@@ -38,8 +46,8 @@ func GetPostsHandler(db *sql.DB) http.HandlerFunc {
 		JOIN categories c ON c.id = pc.category_id
 		GROUP BY p.id 
 		ORDER BY p.created_at DESC
-	LIMIT 10
-		`)
+	LIMIT 10 OFFSET ?
+		`, offset+5)
 
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -63,9 +71,9 @@ WHERE p.id IN (
    WHERE c3.name = ?
 )
 ORDER BY p.created_at DESC
-LIMIT 10
+LIMIT 10 OFFSET ?
 
-			`, category)
+			`, category, offset)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				log.Println("Error querying posts with category:", err)
@@ -74,7 +82,13 @@ LIMIT 10
 		}
 
 		defer rows.Close()
-		var posts []Post
+		var posts = struct {
+			Posts []Post
+			IsEnd bool
+		}{
+			Posts: []Post{},
+			IsEnd: false,
+		}
 		for rows.Next() {
 			var post Post
 			var category string
@@ -85,7 +99,10 @@ LIMIT 10
 			}
 
 			post.Categories = strings.Split(category, ",")
-			posts = append(posts, post)
+			posts.Posts = append(posts.Posts, post)
+		}
+		if len(posts.Posts) < 10 {
+			posts.IsEnd = true
 		}
 
 		w.Header().Set("Content-Type", "application/json")

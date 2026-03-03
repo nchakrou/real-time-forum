@@ -1,7 +1,7 @@
 import { Header } from "../components/Header.js";
 import { pagesInit } from "../components/pagesInit.js";
-import { ws } from "../core/WebSocket/initWs.js"
-import { router } from "../core/Router.js"
+import { ws } from "../core/WebSocket/initWs.js";
+import { router } from "../core/Router.js";
 const chatPage = `
 ${Header}
 <main class="app-chat">
@@ -51,71 +51,76 @@ ${Header}
         </div>
     </div>
 </main>
-`
+`;
 
 export function chat() {
-    document.body.innerHTML = chatPage
-    pagesInit("/chat")
-    console.log(window.location.pathname);
-    if (window.location.search) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const username = urlParams.get('username');
-        if (username) {
-            handleActiveChat(username)
-            sentBtn()
-        }
-
+  document.body.innerHTML = chatPage;
+  pagesInit("/chat");
+  console.log(window.location.pathname);
+  if (window.location.search) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const username = urlParams.get("username");
+    if (username) {
+      handleActiveChat(username);
+      sentBtn();
     }
+  }
 }
 
 function handleActiveChat(tagername) {
-    if (!ws) {
-        alert("WebSocket is not open")
-        return
-    }
-    ws.send(JSON.stringify({
-        type: "getChat",
-        target: tagername
-    }))
-    //mobile handle
-    const chatMain = document.getElementById("chat-main")
+  if (!ws) {
+    alert("WebSocket is not open");
+    return;
+  }
+  ws.send(
+    JSON.stringify({
+      type: "getChat",
+      target: tagername,
+      offset: 0,
+    }),
+  );
+  //mobile handle
+  const chatMain = document.getElementById("chat-main");
 
-    console.log(getComputedStyle(chatMain).display);
-    if (!getComputedStyle(chatMain).display || getComputedStyle(chatMain).display === "none") {
-        chatMain.style.display = "flex"
-        const chatSidebar = document.getElementById("chat-sidebar")
-        chatSidebar.style.display = "none"
-        const mobileBackBtn = document.getElementById("mobile-back-btn")
-        mobileBackBtn.style.display = "flex"
-        mobileBackBtn.addEventListener("click", () => {
-            router("/chat")
-        })
-    }
-    const chatAvatar = document.getElementById("active-chat-avatar")
-    const chatName = document.getElementById("active-chat-name")
-    chatAvatar.textContent = tagername.charAt(0).toUpperCase()
-    chatName.textContent = tagername
-    const emptyChatState = document.getElementsByClassName("empty-chat-state")[0]
-    emptyChatState.style.display = "none"
-
+  console.log(getComputedStyle(chatMain).display);
+  if (
+    !getComputedStyle(chatMain).display ||
+    getComputedStyle(chatMain).display === "none"
+  ) {
+    chatMain.style.display = "flex";
+    const chatSidebar = document.getElementById("chat-sidebar");
+    chatSidebar.style.display = "none";
+    const mobileBackBtn = document.getElementById("mobile-back-btn");
+    mobileBackBtn.style.display = "flex";
+    mobileBackBtn.addEventListener("click", () => {
+      router("/chat");
+    });
+  }
+  const chatAvatar = document.getElementById("active-chat-avatar");
+  const chatName = document.getElementById("active-chat-name");
+  chatAvatar.textContent = tagername.charAt(0).toUpperCase();
+  chatName.textContent = tagername;
+  const emptyChatState = document.getElementsByClassName("empty-chat-state")[0];
+  emptyChatState.style.display = "none";
 }
 function sentBtn() {
-    document.getElementById("chat-send-btn").addEventListener("click", () => {
-        const messageInput = document.getElementById("chat-message-input")
-        const message = messageInput.value
-        if (message) {
-            ws.send(JSON.stringify({
-                type: "message",
-                target: document.getElementById("active-chat-name").textContent,
-                message: message
-            }))
-            messageInput.value = ""
-        }
-        const chatViewport = document.getElementById("chat-viewport")
-        const messageDiv = document.createElement("div")
-        messageDiv.classList.add("Mymessage")
-        messageDiv.textContent = message
-        chatViewport.appendChild(messageDiv)
-    })
-
+  document.getElementById("chat-send-btn").addEventListener("click", () => {
+    const messageInput = document.getElementById("chat-message-input");
+    const message = messageInput.value;
+    if (message) {
+      ws.send(
+        JSON.stringify({
+          type: "message",
+          target: document.getElementById("active-chat-name").textContent,
+          message: message,
+        }),
+      );
+      messageInput.value = "";
+    }
+    const chatViewport = document.getElementById("chat-viewport");
+    const messageDiv = document.createElement("div");
+    messageDiv.classList.add("Mymessage");
+    messageDiv.textContent = message;
+    chatViewport.appendChild(messageDiv);
+  });
 }
