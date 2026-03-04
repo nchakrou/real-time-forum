@@ -1,5 +1,5 @@
 import { router } from "../core/Router.js";
-import { init } from "../main.js"
+import { init } from "../main.js";
 const registerPage = `
   <div class ="app-auth">
 <div class="register">
@@ -21,6 +21,7 @@ const registerPage = `
       <option value="male">Male</option>
       <option value="female">Female</option>
     </select>
+    <p id="error" style="display:none"></p>
     <div class="message">
     Already have an account?
   <a id="login">login</a>
@@ -30,10 +31,17 @@ const registerPage = `
 </div>
 
 </div>`;
+
+function showRegisterError(msg) {
+  const errorElement = document.getElementById("error");
+  errorElement.style.display = "block";
+  errorElement.textContent = msg;
+}
+
 export function register() {
-  document.body.innerHTML = registerPage
-  hanleRegister()
-  loginListener()
+  document.body.innerHTML = registerPage;
+  hanleRegister();
+  loginListener();
 }
 function loginListener() {
   document.getElementById("login").addEventListener("click", () => {
@@ -41,20 +49,28 @@ function loginListener() {
   });
 }
 function hanleRegister() {
-  document.getElementById("register-form").addEventListener(
-    "submit",
-    async (event) => {
+  document
+    .getElementById("register-form")
+    .addEventListener("submit", async (event) => {
       event.preventDefault();
-      const first = document.getElementById("firstname").value
-      const last = document.getElementById("lastname").value
-      const nickname = document.getElementById("nickname").value
-      const age = document.getElementById("age").value
-      const email = document.getElementById("email").value
-      const password = document.getElementById("password").value
-      const gender = document.getElementById("gender").value
+      const first = document.getElementById("firstname").value;
+      const last = document.getElementById("lastname").value;
+      const nickname = document.getElementById("nickname").value;
+      const age = document.getElementById("age").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const gender = document.getElementById("gender").value;
 
-      if (!first || !last || !nickname || !age || !email || !password || !gender) {
-        alert("Please fill in all fields.");
+      if (
+        !first ||
+        !last ||
+        !nickname ||
+        !age ||
+        !email ||
+        !password ||
+        !gender
+      ) {
+        showRegisterError("Please fill in all fields.");
         return;
       }
       const userData = {
@@ -64,22 +80,19 @@ function hanleRegister() {
         age: age,
         email: email,
         password: password,
-        gender: gender
-      }
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
+        gender: gender,
       };
-      const response = await fetch('/api/register', requestOptions);
-      let err = await response.json()
+      const requestOptions = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userData),
+      };
+      const response = await fetch("/api/register", requestOptions);
+      const data = await response.json().catch(() => ({}));
       if (response.ok) {
-        init()
+        init();
       } else {
-        alert(`Registration failed: `);
-        console.log(err);
-
+        showRegisterError(data.error || "Registration failed");
       }
-    }
-  )
+    });
 }

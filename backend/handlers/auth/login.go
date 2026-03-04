@@ -17,7 +17,7 @@ import (
 func LoginHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			writeJSONError(w, http.StatusMethodNotAllowed, "method", "method not allowed")
+			backend.WriteJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
 			return
 		}
 
@@ -27,11 +27,11 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
-			writeJSONError(w, http.StatusBadRequest, "json", "invalid JSON")
+			backend.WriteJSONError(w, http.StatusBadRequest, "something went wrong. Please check your entry.")
 			return
 		}
 		if creds.Username == "" || creds.Password == "" {
-			writeJSONError(w, http.StatusBadRequest, "credentials", "username and password required")
+			backend.WriteJSONError(w, http.StatusBadRequest, "Please enter both your nickname/email and password.")
 			return
 		}
 		var userID int64
@@ -42,16 +42,16 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 			creds.Username, creds.Username,
 		).Scan(&userID, &passwordHash)
 		if err == sql.ErrNoRows {
-			writeJSONError(w, http.StatusUnauthorized, "credentials", "invalid credentials")
+			backend.WriteJSONError(w, http.StatusUnauthorized, "invalid credentials")
 			return
 		}
 		if err != nil {
 			log.Println("DB error during login:", err)
-			writeJSONError(w, http.StatusInternalServerError, "db", "something went wrong")
+			backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again.")
 			return
 		}
 		if bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(creds.Password)) != nil {
-			writeJSONError(w, http.StatusUnauthorized, "credentials", "invalid credentials")
+			backend.WriteJSONError(w, http.StatusUnauthorized, "invalid credentials")
 			return
 		}
 
@@ -66,7 +66,7 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 		)
 		if err != nil {
 			log.Println("Session insert error:", err)
-			writeJSONError(w, http.StatusInternalServerError, "db", "session creation failed")
+			backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again.")
 			return
 		}
 

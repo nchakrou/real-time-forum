@@ -52,13 +52,13 @@ func TargetID(db *sql.DB, username string) (int, error) {
 	}
 	return id, nil
 }
-func (hub *Hub) GetMessages(db *sql.DB, fromID int, toUsername string, conn *websocket.Conn, fromUsername string) {
+func (hub *Hub) GetMessages(db *sql.DB, fromID int, toUsername string, conn *websocket.Conn, fromUsername string, offset int) {
 	toID, err := TargetID(db, toUsername)
 	if err != nil {
 		log.Println("Error getting target ID:", err)
 		return
 	}
-	rows, err := db.Query("select u.nickname, m.content, m.created_at from messages m join users u on m.sender_id = u.id where (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?)", fromID, toID, toID, fromID)
+	rows, err := db.Query("select u.nickname, m.content, m.created_at from messages m join users u on m.sender_id = u.id where (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?) ORDER BY m.created_at DESC LIMIT 10 OFFSET ?", fromID, toID, toID, fromID, offset)
 	if err != nil {
 		log.Println("Error getting messages:", err)
 		return

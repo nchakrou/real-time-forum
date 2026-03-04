@@ -1,4 +1,5 @@
 import { toggleLike } from "../../pages/likes.js";
+import { Popup } from "../../components/Popup.js";
 
 export const postButtons = {
   like_button: (e) => likeListener(e),
@@ -13,9 +14,9 @@ export const states = {
   isEnd: false,
 };
 export async function fetchPosts(path) {
-    if (states.isEnd) return;
-    console.log("fetching posts", states.offset, path, states.isEnd);
-  
+  if (states.isEnd) return;
+  console.log("fetching posts", states.offset, path, states.isEnd);
+
   const isFirstLoad = states.offset === 0;
   try {
     let fetchPath = path;
@@ -39,7 +40,7 @@ export async function fetchPosts(path) {
       throw new Error(response);
     }
   } catch (error) {
-    alert("ok", error);
+    Popup.show("Failed to load posts");
   }
 }
 export function createpostsContainer(posts, isFirstLoad = false) {

@@ -1,4 +1,4 @@
-import { router } from "../core/Router.js"
+import { router } from "../core/Router.js";
 import { init } from "../main.js";
 const loginPage = `
 <div class ="app-auth">
@@ -18,38 +18,39 @@ const loginPage = `
 </div>`;
 
 export function login() {
-    document.body.innerHTML = loginPage;
+  document.body.innerHTML = loginPage;
 
-    registerListener();
-    handleLogin();
+  registerListener();
+  handleLogin();
 }
 function handleLogin() {
-    document.getElementById("login-form").addEventListener("submit", async (event) => {
-        event.preventDefault();
-        const username = document.getElementById("username").value;
-        const password = document.getElementById("password").value;
-        const request = {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ username, password }),
-        };
-        const response = await fetch("/api/login", request);
+  document
+    .getElementById("login-form")
+    .addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const request = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      };
+      const response = await fetch("/api/login", request);
 
-        if (response.ok) {
-            init()
-        } else {
-            const errorElement = document.getElementById("error");
-            errorElement.style.display = "block";
-            errorElement.textContent = "Invalid username or password";
-        }
+      if (response.ok) {
+        init();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        const errorElement = document.getElementById("error");
+        errorElement.style.display = "block";
+        errorElement.textContent = data.error || "Invalid username or password";
+      }
     });
 }
 function registerListener() {
-    document.getElementById("register").addEventListener("click", () => {
-        router("/register");
-    });
+  document.getElementById("register").addEventListener("click", () => {
+    router("/register");
+  });
 }
-
-

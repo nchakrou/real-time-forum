@@ -1,7 +1,7 @@
-
-import { router } from "../core/Router.js"
+import { router } from "../core/Router.js";
 import { Header } from "../components/Header.js";
 import { pagesInit } from "../components/pagesInit.js";
+import { Popup } from "../components/Popup.js";
 const createPostPage = `${Header}
 <div class = "app-home">
 <div id = "categories" class = "categories">
@@ -44,35 +44,35 @@ const createPostPage = `${Header}
 <div class = "users">
   <h2>Users</h2>
 </div>
-</div>`
+</div>`;
 export function createPost() {
-  document.body.innerHTML = createPostPage
-    pagesInit()
-  handleCreatePost()
-  createPostCategoriesListener()
+  document.body.innerHTML = createPostPage;
+  pagesInit();
+  handleCreatePost();
+  createPostCategoriesListener();
 }
 function createPostCategoriesListener() {
-  document.getElementById("CreatePostCategories").addEventListener("click", (e) => {
-    if (e.target.dataset.id) {
-      e.target.classList.toggle("active")
-    }
-
-  })
+  document
+    .getElementById("CreatePostCategories")
+    .addEventListener("click", (e) => {
+      if (e.target.dataset.id) {
+        e.target.classList.toggle("active");
+      }
+    });
 }
 function handleCreatePost() {
   document.getElementById("submitpost").addEventListener("click", async () => {
-    
-    const title = document.getElementById("post").value
-    const content = document.getElementById("content").value
+    const title = document.getElementById("post").value;
+    const content = document.getElementById("content").value;
     const CategoriesElements = document.querySelectorAll(
-      "#CreatePostCategories .active"
-    )
-    const selectedCategories = Array.from(CategoriesElements).map(
-      (el) => Number(el.dataset.id)
-    )
+      "#CreatePostCategories .active",
+    );
+    const selectedCategories = Array.from(CategoriesElements).map((el) =>
+      Number(el.dataset.id),
+    );
 
     if (!title || !content || selectedCategories.length === 0) {
-      alert("Please fill in all fields and select at least one category.");
+      Popup.show("Please fill in all fields and select at least one category.");
       return;
     }
 
@@ -80,24 +80,22 @@ function handleCreatePost() {
       title: title,
       content: content,
       categories: selectedCategories,
-    }
-    
-      const response = await fetch("/api/createpost", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(postData),
-      })
-  console.log(response.statusText);
+    };
 
-      if (response.ok) {
-        
-        router("/")
-      } else {
-        const errorData = await response.json()
-        alert(`Error: ${errorData.message}`)
-      }
-    
-  })
+    const response = await fetch("/api/createpost", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(postData),
+    });
+    console.log(response.statusText);
+
+    if (response.ok) {
+      router("/");
+    } else {
+      const errorData = await response.json().catch(() => ({}));
+      Popup.show(errorData.error || "Failed to create post");
+    }
+  });
 }

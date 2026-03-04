@@ -2,6 +2,9 @@ import { Header } from "../components/Header.js";
 import { pagesInit } from "../components/pagesInit.js";
 import { ws } from "../core/WebSocket/initWs.js";
 import { router } from "../core/Router.js";
+import { Popup } from "../components/Popup.js";
+import { states } from "../core/Listeners/postListners.js";
+import { throttle } from "../utils/throttle.js";
 const chatPage = `
 ${Header}
 <main class="app-chat">
@@ -66,10 +69,9 @@ export function chat() {
     }
   }
 }
-
 function handleActiveChat(tagername) {
   if (!ws) {
-    alert("WebSocket is not open");
+    Popup.show("Connection lost. Please refresh.");
     return;
   }
   ws.send(
@@ -102,6 +104,22 @@ function handleActiveChat(tagername) {
   chatName.textContent = tagername;
   const emptyChatState = document.getElementsByClassName("empty-chat-state")[0];
   emptyChatState.style.display = "none";
+  document.getElementById("chat-viewport").addEventListener(
+    "scroll",
+    throttle(() => {
+      console.log(document.getElementById("chat-viewport").scrollTop);
+
+      if (document.getElementById("chat-viewport").scrollTop <= 50) {
+        ws.send(
+          JSON.stringify({
+            type: "getChat",
+            target: tagername,
+            offset: states.offset,
+          }),
+        );
+      }
+    }, 200),
+  );
 }
 function sentBtn() {
   document.getElementById("chat-send-btn").addEventListener("click", () => {

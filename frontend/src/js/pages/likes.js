@@ -8,7 +8,7 @@ export async function toggleLike(id, value) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ value }),
-      credentials: "include"
+      credentials: "include",
     });
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -28,12 +28,10 @@ export async function toggleLike(id, value) {
 
     likeBtn.classList.toggle("active", data.userValue === 1);
     dislikeBtn.classList.toggle("active", data.userValue === -1);
-
   } catch (err) {
     console.error("Like toggle failed:", err);
   }
 }
-
 
 export async function likedPosts() {
   let main = document.querySelector("main");
@@ -48,7 +46,7 @@ export async function likedPosts() {
   try {
     const response = await fetch("/api/liked-posts", {
       method: "GET",
-      credentials: "include"
+      credentials: "include",
     });
 
     if (!response.ok) {
@@ -64,7 +62,6 @@ export async function likedPosts() {
     }
 
     createpostsContainer(posts);
-
   } catch (err) {
     console.error("Liked posts error:", err);
     const postsContainer = document.getElementById("posts-container");

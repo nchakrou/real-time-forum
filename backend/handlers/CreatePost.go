@@ -20,20 +20,20 @@ func CreatePostHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		if r.Method != http.MethodPost {
-			w.WriteHeader(http.StatusMethodNotAllowed)
+			backend.WriteJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
 			log.Println("Method not allowed")
 			return
 		}
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			backend.WriteJSONError(w, http.StatusBadRequest, "something went wrong. Please try again.")
 			log.Println("Error reading request body:", err)
 			return
 		}
 		var postData post
 		err = json.Unmarshal(body, &postData)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
+			backend.WriteJSONError(w, http.StatusBadRequest, "Something is wrong with your post's format. Please check and try again.")
 			log.Println("Error unmarshaling JSON:", err)
 			return
 		}
@@ -46,7 +46,7 @@ func CreatePostHandler(db *sql.DB) http.HandlerFunc {
 		}
 		res, err := db.Exec("INSERT INTO posts (user_id, title, content) VALUES (?, ?, ?)", userid, postData.Title, postData.Content)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
 			log.Println("Error inserting post into database:", err)
 			return
 		}
@@ -59,12 +59,12 @@ func CreatePostHandler(db *sql.DB) http.HandlerFunc {
 		}
 		for _, categoryID := range postData.Categories {
 			if categoryID <= 0 || categoryID > 7 {
-				w.WriteHeader(http.StatusBadRequest)
+				backend.WriteJSONError(w, http.StatusBadRequest, "Please select a valid category for your post.")
 				log.Println("Invalid category ID:", categoryID)
 				return
 			}
 			_, err = db.Exec("INSERT INTO post_categories (post_id, category_id) VALUES (?, ?)", postID, categoryID)
-			
+
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				log.Println("Error inserting post category into database:", err)

@@ -14,7 +14,7 @@ import (
 func GetMyPostsHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
-			w.WriteHeader(http.StatusMethodNotAllowed)
+			backend.WriteJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
 			return
 		}
 		user, err := backend.GetUserIDFromRequest(db, r)
@@ -26,7 +26,7 @@ func GetMyPostsHandler(db *sql.DB) http.HandlerFunc {
 		offsetstr := r.URL.Query().Get("offset")
 		offset, err := strconv.Atoi(offsetstr)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
+			backend.WriteJSONError(w, http.StatusBadRequest, "invalid offset parameter")
 			log.Println("Error converting offset to integer:", err)
 			return
 		}

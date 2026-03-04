@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"forum/backend"
 	"log"
 	"net/http"
 	"strconv"
@@ -23,7 +24,7 @@ type Post struct {
 func GetPostsHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
-			w.WriteHeader(http.StatusMethodNotAllowed)
+			backend.WriteJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
 			return
 		}
 
@@ -51,7 +52,7 @@ func GetPostsHandler(db *sql.DB) http.HandlerFunc {
 		`, offset)
 
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
+				backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again.")
 				log.Println("Error querying posts:", err)
 				return
 			}
@@ -76,7 +77,7 @@ LIMIT 10 OFFSET ?
 
 			`, category, offset)
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
+				backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again.")
 				log.Println("Error querying posts with category:", err)
 				return
 			}
@@ -94,7 +95,7 @@ LIMIT 10 OFFSET ?
 			var post Post
 			var category string
 			if err := rows.Scan(&post.Id, &post.Title, &post.Content, &post.Likes, &post.Dislikes, &post.Comments, &category); err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
+				backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again.")
 				log.Println("Error scanning post:", err)
 				return
 			}

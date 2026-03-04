@@ -11,6 +11,7 @@ export const headerButtonsRoutes = {
     await fetch("/api/logout", {
       method: "GET",
     });
+    ws.close();
     router("/login");
   },
 };
