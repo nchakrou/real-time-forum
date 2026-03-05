@@ -10,17 +10,19 @@ export const routes = {
   "/chat": () => router("/chat"),
 };
 
-const path = window.location.pathname + window.location.search;
-
-export async function init() {
+export async function init(path) {
+  if (!path) {
+    path = window.location.pathname + window.location.search;
+  }
   const [user, log] = await isLogged();
-  console.log(log, user);
+  console.log(log, user, path);
 
   if (log && user) {
     try {
       await OpenWS();
     } catch (e) {
-      console.log(e);
+      ErrorPage("connection error", "500");
+      return;
     }
     if (path === "/register" || path === "/login") {
       router("/");

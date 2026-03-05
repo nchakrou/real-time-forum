@@ -23,13 +23,13 @@ func HandleLikedPosts(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		if r.Method != http.MethodGet {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			backend.WriteJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
 			return
 		}
 
 		user, err := backend.GetUserIDFromRequest(db, r)
 		if err != nil {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			backend.WriteJSONError(w, http.StatusUnauthorized, "login required")
 			return
 		}
 
@@ -52,7 +52,7 @@ func HandleLikedPosts(db *sql.DB) http.HandlerFunc {
 
 		rows, err := db.Query(query, user.ID)
 		if err != nil {
-			http.Error(w, "Database error", http.StatusInternalServerError)
+			backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
 			return
 		}
 		defer rows.Close()
@@ -71,14 +71,14 @@ func HandleLikedPosts(db *sql.DB) http.HandlerFunc {
 				&p.Likes,
 				&p.Dislikes,
 			); err != nil {
-				http.Error(w, "Scan error", http.StatusInternalServerError)
+				backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
 				return
 			}
 			posts = append(posts, p)
 		}
 
 		if err = rows.Err(); err != nil {
-			http.Error(w, "Database error", http.StatusInternalServerError)
+			backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
 			return
 		}
 

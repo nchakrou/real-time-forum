@@ -40,7 +40,7 @@ export async function fetchPosts(path) {
       throw new Error(response);
     }
   } catch (error) {
-    Popup.show("Failed to load posts");
+    Popup.show("Connection error");
   }
 }
 export function createpostsContainer(posts, isFirstLoad = false) {

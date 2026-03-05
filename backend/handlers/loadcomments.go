@@ -40,7 +40,7 @@ func HandleGetComments(db *sql.DB) http.HandlerFunc {
 		`, postID)
 		if err != nil {
 			log.Println("DB query error:", err)
-			w.WriteHeader(http.StatusInternalServerError)
+			backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
 			return
 		}
 		defer rows.Close()

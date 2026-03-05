@@ -98,7 +98,7 @@
     }
 }
 
-/* Mobile Responsiveness */
+
 @media (max-width: 480px) {
     .error-code {
         font-size: 80px;

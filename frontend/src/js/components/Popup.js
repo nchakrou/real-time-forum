@@ -1,9 +1,9 @@
 export const Popup = {
     show: (message, duration = 3000) => {
         const existingPopup = document.getElementById('popup');
-        if (existingPopup) {
-            existingPopup.remove();
-        }
+    if (existingPopup) {
+      existingPopup.remove();
+    }
 
         const popup = document.createElement('div');
         popup.id = 'popup';
@@ -13,15 +13,15 @@ export const Popup = {
         content.id = 'popup-content';
 
         const text = document.createElement('p');
-        text.textContent = message;
+    text.textContent = message;
 
-        content.appendChild(text);
-        popup.appendChild(content);
-        document.body.appendChild(popup);
+    content.appendChild(text);
+    popup.appendChild(content);
+    document.body.appendChild(popup);
 
-        setTimeout(() => {
+    setTimeout(() => {
             popup.classList.add('show');
-        }, 10);
+    }, 100);
         setTimeout(() => {
             popup.classList.remove('show');
             setTimeout(() => {
@@ -31,9 +31,9 @@ export const Popup = {
 
         popup.onclick = () => {
             popup.classList.remove('show');
-            setTimeout(() => {
-                popup.remove();
-            }, 500);
-        };
+      setTimeout(() => {
+        popup.remove();
+      }, 500);
+    };
     }
 };

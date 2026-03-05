@@ -36,19 +36,11 @@ WHERE s.token = ? AND s.expires_at > datetime('now');
 func AuthRequired(DB *sql.DB, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if _, err := GetUserIDFromRequest(DB, r); err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
+			WriteJSONError(w, http.StatusUnauthorized, "login required")
 			return
 		}
 		next.ServeHTTP(w, r)
 	}
 }
 
-func NotAuthRequired(DB *sql.DB, next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if _, err := GetUserIDFromRequest(DB, r); err == nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		next.ServeHTTP(w, r)
-	}
-}
+

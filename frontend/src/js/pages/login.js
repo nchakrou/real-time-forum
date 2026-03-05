@@ -30,6 +30,12 @@ function handleLogin() {
       event.preventDefault();
       const username = document.getElementById("username").value;
       const password = document.getElementById("password").value;
+      if (!username || !password) {
+        const errorElement = document.getElementById("error");
+        errorElement.style.display = "block";
+        errorElement.textContent = "Please fill in all the fields";
+        return;
+      }
       const request = {
         method: "POST",
         headers: {
@@ -45,6 +51,8 @@ function handleLogin() {
         const data = await response.json().catch(() => ({}));
         const errorElement = document.getElementById("error");
         errorElement.style.display = "block";
+        console.log(data);
+
         errorElement.textContent = data.error || "Invalid username or password";
       }
     });

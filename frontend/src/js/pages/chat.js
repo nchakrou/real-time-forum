@@ -70,8 +70,8 @@ export function chat() {
   }
 }
 function handleActiveChat(tagername) {
-  if (!ws) {
-    Popup.show("Connection lost. Please refresh.");
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    Popup.show("Connection lost. Please refresh the page.");
     return;
   }
   ws.send(

@@ -4,7 +4,12 @@ export function message(data) {
     const chatViewport = document.getElementById("chat-viewport");
     const message = document.createElement("div");
     message.classList.add("message");
-    message.textContent = data.message;
+    const p = document.createElement("p");
+    p.textContent = data.message;
+    const sender = document.createElement("h4");
+    sender.textContent = data.from;
+    message.appendChild(sender);
+    message.appendChild(p);
     chatViewport.appendChild(message);
   } else {
     MessageNotification(data.from);
@@ -46,13 +51,18 @@ export function chatHistory(data) {
         "username",
       );
       console.log("hadi", message.from, target);
-
+      const p = document.createElement("p");
+      const sender = document.createElement("h4");
+     
+sender.textContent = message.from;
+      p.textContent = message.message;
+      messageDiv.appendChild(sender);
+      messageDiv.appendChild(p);
       if (message.from === target) {
         messageDiv.classList.add("message");
       } else {
         messageDiv.classList.add("Mymessage");
       }
-      messageDiv.textContent = message.message;
       chatViewport.prepend(messageDiv);
     });
     chatViewport.scrollTop = chatViewport.scrollHeight;

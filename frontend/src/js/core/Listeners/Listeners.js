@@ -1,5 +1,7 @@
 import { router } from "../Router.js";
 import { fetchPosts } from "./postListners.js";
+import { init } from "../../main.js";
+import { ws } from "../WebSocket/initWs.js";
 
 export const headerButtonsRoutes = {
   home: () => router("/"),
@@ -12,7 +14,7 @@ export const headerButtonsRoutes = {
       method: "GET",
     });
     ws.close();
-    router("/login");
+    init("/login");
   },
 };
 

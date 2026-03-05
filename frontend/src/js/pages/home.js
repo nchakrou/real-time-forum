@@ -37,7 +37,6 @@ ${Header}
 
 export function home() {
   document.body.innerHTML = homePage;
-  Popup.show("test");
   pagesInit();
   const params = new URLSearchParams(window.location.search);
   const category = params.get("category");
@@ -54,16 +53,19 @@ export function home() {
   // Infinite Scroll Listener
   const postsContainer = document.querySelector(".posts");
   if (postsContainer) {
-    postsContainer.addEventListener("scroll", () => {
-      const { scrollTop, scrollHeight, clientHeight } = postsContainer;
-      console.log(scrollTop + clientHeight - scrollHeight - 200);
+    postsContainer.addEventListener(
+      "scroll",
+      throttle(() => {
+        const { scrollTop, scrollHeight, clientHeight } = postsContainer;
+        console.log(scrollTop + clientHeight - scrollHeight - 200);
 
-      if (scrollTop + clientHeight >= scrollHeight - 200) {
-        const path = category
-          ? `/api/posts?category=${category}`
-          : "/api/posts";
-        fetchPosts(path);
-      }
-    });
+        if (scrollTop + clientHeight >= scrollHeight - 200) {
+          const path = category
+            ? `/api/posts?category=${category}`
+            : "/api/posts";
+          fetchPosts(path);
+        }
+      }, 200),
+    );
   }
 }

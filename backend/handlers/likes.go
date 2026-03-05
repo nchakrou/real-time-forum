@@ -25,32 +25,32 @@ func HandleLike(hub *Websocket.Hub, db *sql.DB, target string) http.HandlerFunc 
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("like")
 		if r.Method != http.MethodPost {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			backend.WriteJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
 			return
 		}
 
 		user, err := backend.GetUserIDFromRequest(db, r)
 		userID := user.ID
 		if err != nil {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			backend.WriteJSONError(w, http.StatusUnauthorized, "login required")
 			return
 		}
 
 		var req LikeRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			backend.WriteJSONError(w, http.StatusBadRequest, "something went wrong. Please check your entry.")
 			return
 		}
 
 		if req.Value != 1 && req.Value != -1 {
-			http.Error(w, "Invalid value", http.StatusBadRequest)
+			backend.WriteJSONError(w, http.StatusBadRequest, "something went wrong. Please try again.")
 			return
 		}
 
 		idStr := r.URL.Query().Get("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil || id <= 0 {
-			http.Error(w, "Invalid id", http.StatusBadRequest)
+			backend.WriteJSONError(w, http.StatusBadRequest, "something went wrong. Please try again.")
 			return
 		}
 
@@ -61,7 +61,7 @@ func HandleLike(hub *Websocket.Hub, db *sql.DB, target string) http.HandlerFunc 
 
 		tx, err := db.Begin()
 		if err != nil {
-			http.Error(w, "Database error", http.StatusInternalServerError)
+			backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
 			return
 		}
 		defer tx.Rollback()
@@ -112,7 +112,7 @@ func HandleLike(hub *Websocket.Hub, db *sql.DB, target string) http.HandlerFunc 
 				userValue = req.Value
 			}
 		} else {
-			http.Error(w, "Database error", http.StatusInternalServerError)
+			backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
 			return
 		}
 
@@ -123,7 +123,7 @@ func HandleLike(hub *Websocket.Hub, db *sql.DB, target string) http.HandlerFunc 
 			id,
 		).Scan(&likes)
 		if err != nil {
-			http.Error(w, "Database error", http.StatusInternalServerError)
+			backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
 			return
 		}
 		err = tx.QueryRow(
@@ -131,12 +131,7 @@ func HandleLike(hub *Websocket.Hub, db *sql.DB, target string) http.HandlerFunc 
 			id,
 		).Scan(&dislikes)
 		if err != nil {
-			http.Error(w, "Database error", http.StatusInternalServerError)
-			return
-		}
-
-		if err != nil {
-			http.Error(w, "Database error", http.StatusInternalServerError)
+			backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
 			return
 		}
 		if target == "post" {
@@ -150,7 +145,7 @@ func HandleLike(hub *Websocket.Hub, db *sql.DB, target string) http.HandlerFunc 
 			}
 		}
 		if err = tx.Commit(); err != nil {
-			http.Error(w, "Database error", http.StatusInternalServerError)
+			backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
 			return
 		}
 		if target == "post" && userValue == 1 {
