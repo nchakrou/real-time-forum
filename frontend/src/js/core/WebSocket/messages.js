@@ -36,6 +36,8 @@ function MessageNotification(username) {
   }
 }
 export function chatHistory(data) {
+  console.log("end", states.isEnd);
+
   const chatViewport = document.getElementById("chat-viewport");
   if (states.offset === 0) {
     chatViewport.innerHTML = "";
@@ -53,8 +55,8 @@ export function chatHistory(data) {
       console.log("hadi", message.from, target);
       const p = document.createElement("p");
       const sender = document.createElement("h4");
-     
-sender.textContent = message.from;
+
+      sender.textContent = message.from;
       p.textContent = message.message;
       messageDiv.appendChild(sender);
       messageDiv.appendChild(p);
@@ -65,7 +67,10 @@ sender.textContent = message.from;
       }
       chatViewport.prepend(messageDiv);
     });
-    chatViewport.scrollTop = chatViewport.scrollHeight;
+
+    if (states.offset === 10) {
+      chatViewport.scrollTop = chatViewport.scrollHeight;
+    }
   } else if (states.offset === 0) {
     chatViewport.innerHTML = `
         <div class="empty-chat-state">
@@ -76,5 +81,7 @@ sender.textContent = message.from;
             <p>Start a conversation</p>
         </div>
         `;
+  } else {
+    states.isEnd = true;
   }
 }

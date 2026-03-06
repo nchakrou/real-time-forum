@@ -110,6 +110,11 @@ function handleActiveChat(tagername) {
       console.log(document.getElementById("chat-viewport").scrollTop);
 
       if (document.getElementById("chat-viewport").scrollTop <= 50) {
+        console.log("end", states.isEnd);
+
+        if (states.isEnd) {
+          return;
+        }
         ws.send(
           JSON.stringify({
             type: "getChat",
