@@ -148,24 +148,6 @@ func HandleLike(hub *Websocket.Hub, db *sql.DB, target string) http.HandlerFunc 
 			backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
 			return
 		}
-		if target == "post" && userValue == 1 {
-			var ownerID int
-			err := db.QueryRow("SELECT user_id FROM posts WHERE id = ?", id).Scan(&ownerID)
-			if err == nil && ownerID != userID {
-				var likerName string
-
-				db.QueryRow("SELECT nickname FROM users WHERE id = ?", userID).Scan(&likerName)
-				content := " liked your post"
-				hub.SendNotification(
-					db,
-					userID,
-					ownerID,
-					likerName,
-					content,
-					id,
-				)
-			}
-		}
 		resp := LikeResponse{
 			Likes:     likes,
 			Dislikes:  dislikes,

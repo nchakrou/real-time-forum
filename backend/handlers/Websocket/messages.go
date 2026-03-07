@@ -22,9 +22,16 @@ func (hub *Hub) SendPrivateMessage(db *sql.DB, fromID int, toUsername string, me
 	if err != nil {
 		return
 	}
+	_, err = db.Exec(
+		"INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)",
+		fromID, toID, message,
+	)
+	if err != nil {
+		log.Println("Error saving message to database:", err)
+		return
+	}
 	hub.mu.Lock()
 	defer hub.mu.Unlock()
-
 	for _, conn := range hub.Clients[toID] {
 		resp := response{
 			Type:    "message",
@@ -36,11 +43,6 @@ func (hub *Hub) SendPrivateMessage(db *sql.DB, fromID int, toUsername string, me
 			conn.Close()
 			continue
 		}
-	}
-	_, err = db.Exec("INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)", fromID, toID, message)
-	if err != nil {
-		log.Println("Error saving message to database:", err)
-		return
 	}
 }
 

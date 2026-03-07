@@ -1,7 +1,7 @@
 import { OnlineUsers } from "../../components/pagesInit.js"
 import { message } from "./messages.js"
 import { chatHistory } from "./messages.js"
-import { showNotification } from "./shownotification.js";
+import { showNotification } from "../WebSocket/shownotification.js";
 
 export let ws
 export function OpenWS() {

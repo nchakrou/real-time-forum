@@ -1,40 +1,32 @@
 import { states } from "../Listeners/postListners.js";
+import { showNotification } from "../WebSocket/shownotification.js";
+
 export function message(data) {
-  if (window.location.search.includes(data.from)) {
+  const currentChat = new URLSearchParams(window.location.search).get("username");
+
+  if (window.location.pathname === "/chat" && currentChat === data.from) {
     const chatViewport = document.getElementById("chat-viewport");
-    const message = document.createElement("div");
-    message.classList.add("message");
+    if (!chatViewport) return;
+
+    const div = document.createElement("div");
+    div.classList.add("message");
+
+    const h4 = document.createElement("h4");
+    h4.textContent = data.from;
+
     const p = document.createElement("p");
     p.textContent = data.message;
-    const sender = document.createElement("h4");
-    sender.textContent = data.from;
-    message.appendChild(sender);
-    message.appendChild(p);
-    chatViewport.appendChild(message);
+
+    div.appendChild(h4);
+    div.appendChild(p);
+    chatViewport.appendChild(div);
+    chatViewport.scrollTop = chatViewport.scrollHeight;
   } else {
-    MessageNotification(data.from);
+    showNotification(data);
   }
 }
-function MessageNotification(username) {
-  const notificationBar = document.getElementById("notification-list");
-  let notification = notificationBar.querySelector(`[data-user="${username}"]`);
-  const badge = document.getElementById("notification-badge");
-  if (window.getComputedStyle(badge).display === "none") {
-    badge.style.display = "flex";
-  }
-  badge.textContent = parseInt(badge.textContent) + 1;
-  if (notification) {
-    const counter = ++notification.dataset.counter;
-    notification.textContent = `You have ${counter} message from ${username}`;
-  } else {
-    notification = document.createElement("div");
-    notification.classList.add("notification");
-    notification.dataset.user = username;
-    notification.dataset.counter = 1;
-    notification.textContent = `You have 1 message from ${username}`;
-    notificationBar.appendChild(notification);
-  }
-}
+
+
 export function chatHistory(data) {
   console.log("end", states.isEnd);
 

@@ -4,6 +4,7 @@ import { Header } from "../components/Header.js";
 export async function toggleLike(id, value) {
   try {
     console.log("like :", { id, value });
+
     const res = await fetch(`/api/like?id=${id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -16,10 +17,8 @@ export async function toggleLike(id, value) {
     const data = await res.json();
 
     const post = document.querySelector(`.post[data-post-id="${id}"]`);
-    if (!post) {
-      console.error("Post not found for id:", id);
-      return;
-    }
+    if (!post) return console.error("Post not found for id:", id);
+
     const likeBtn = post.querySelector(".like_button");
     const dislikeBtn = post.querySelector(".dislike_button");
 
@@ -28,11 +27,11 @@ export async function toggleLike(id, value) {
 
     likeBtn.classList.toggle("active", data.userValue === 1);
     dislikeBtn.classList.toggle("active", data.userValue === -1);
+
   } catch (err) {
     console.error("Like toggle failed:", err);
   }
 }
-
 export async function likedPosts() {
   let main = document.querySelector("main");
 
@@ -41,7 +40,9 @@ export async function likedPosts() {
     document.body.appendChild(main);
   }
 
-  main.innerHTML = `<div id="posts-container"></div>`;
+  main.innerHTML = `${Header}<div id="posts-container"></div>`;
+
+  const postsContainer = document.getElementById("posts-container");
 
   try {
     const response = await fetch("/api/liked-posts", {
@@ -49,12 +50,9 @@ export async function likedPosts() {
       credentials: "include",
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    const posts = await response.json();
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-    const postsContainer = document.getElementById("posts-container");
+    const posts = await response.json();
 
     if (!Array.isArray(posts) || posts.length === 0) {
       postsContainer.innerHTML = "<p>No liked posts found.</p>";
@@ -62,11 +60,9 @@ export async function likedPosts() {
     }
 
     createpostsContainer(posts);
+
   } catch (err) {
     console.error("Liked posts error:", err);
-    const postsContainer = document.getElementById("posts-container");
-    if (postsContainer) {
-      postsContainer.innerHTML = "<p>Failed to load liked posts.</p>";
-    }
+    postsContainer.innerHTML = "<p>Failed to load liked posts.</p>";
   }
 }
