@@ -1,5 +1,6 @@
 import { createpostsContainer } from "../core/Listeners/postListners.js";
 import { Header } from "../components/Header.js";
+import { router } from "../core/Router.js";
 
 export async function toggleLike(id, value) {
   try {
@@ -11,6 +12,11 @@ export async function toggleLike(id, value) {
       body: JSON.stringify({ value }),
       credentials: "include",
     });
+
+    if (res.status === 401) {
+      router("/login");
+      return;
+    }
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
@@ -49,6 +55,11 @@ export async function likedPosts() {
       method: "GET",
       credentials: "include",
     });
+
+    if (response.status === 401) {
+      router("/login");
+      return;
+    }
 
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 

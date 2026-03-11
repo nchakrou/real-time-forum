@@ -1,5 +1,6 @@
 import { toggleLike } from "../../pages/likes.js";
 import { Popup } from "../../components/Popup.js";
+import { router } from "../Router.js";
 
 export const postButtons = {
   like_button: (e) => likeListener(e),
@@ -30,6 +31,11 @@ export async function fetchPosts(path) {
         "Content-Type": "application/json",
       },
     });
+
+    if (response.status === 401) {
+      router("/login");
+      return;
+    }
 
     if (response.ok) {
       const posts = await response.json();
@@ -131,6 +137,11 @@ async function submitCommentListener(e) {
       body: formData,
     });
 
+    if (res.status === 401) {
+      router("/login");
+      return;
+    }
+
     if (!res.ok) {
       const text = await res.text();
       console.error("Server error:", text);
@@ -186,6 +197,12 @@ async function loadComments(post) {
 
   try {
     const res = await fetch(`/api/comments?post_id=${postId}`);
+
+    if (res.status === 401) {
+      router("/login");
+      return;
+    }
+
     if (!res.ok) throw new Error("Failed to fetch comments");
 
     const comments = await res.json();

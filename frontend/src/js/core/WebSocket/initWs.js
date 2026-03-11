@@ -7,55 +7,64 @@ export let ws;
 export let currentChatUser = null;
 
 export function setCurrentChatUser(username) {
-    currentChatUser = username;
+  currentChatUser = username;
 }
 
 export function OpenWS() {
-    return new Promise((resolve, reject) => {
-        ws = new WebSocket("ws://localhost:8081/ws");
+  return new Promise((resolve, reject) => {
+    if (
+      ws &&
+      (ws.readyState === WebSocket.OPEN ||
+        ws.readyState === WebSocket.CONNECTING)
+    ) {
+      resolve();
+      return;
+    }
 
-        ws.onopen = () => {
-            console.log("Connected to WebSocket server");
-            ws.send(JSON.stringify({ type: "get_notifications" }));
-            resolve();
-        };
+    ws = new WebSocket("ws://localhost:8081/ws");
 
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log("Message from server:", data);
+    ws.onopen = () => {
+      console.log("Connected to WebSocket server");
+      ws.send(JSON.stringify({ type: "get_notifications" }));
+      resolve();
+    };
 
-            switch (data.type) {
-                case "online_users":
-                    OnlineUsers(data.users);
-                    break;
-                case "chat_history":
-                    chatHistory(data);
-                    break;
-                case "private_message":
-                    handlePrivateMessage(data);
-                    break;
-                case "notifications_history":
-                    if (data.data && Array.isArray(data.data)) {
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log("Message from server:", data);
+
+      switch (data.type) {
+        case "online_users":
+          OnlineUsers(data.users);
+          break;
+        case "chat_history":
+          chatHistory(data);
+          break;
+        case "private_message":
+          handlePrivateMessage(data);
+          break;
+        case "notifications_history":
+          if (data.data && Array.isArray(data.data)) {
                         data.data.forEach(n => storeNotification(n, false));
-                    }
-                    break;
-            }
-        };
+          }
+          break;
+      }
+    };
 
-        ws.onclose = () => console.log("Disconnected from WebSocket server");
-        ws.onerror = (error) => {
-            console.error("WebSocket error:", error);
-            reject(error);
-        };
-    });
+    ws.onclose = () => console.log("Disconnected from WebSocket server");
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      reject(error);
+    };
+  });
 }
 
 function handlePrivateMessage(data) {
     const currentChat = new URLSearchParams(window.location.search).get("username");
 
-    if (currentChat === data.from) {
-        message(data);
-    } else {
-        showNotification(data, true);
-    }
+  if (currentChat === data.from) {
+    message(data);
+  } else {
+    showNotification(data, true);
+  }
 }

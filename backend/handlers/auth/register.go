@@ -20,6 +20,7 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 		emailrg := regexp.MustCompile(`^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`)
+		usrRgx := regexp.MustCompile(`^[a-zA-Z0-9_-]{2,16}$`)
 
 		var req struct {
 			FirstName string `json:"firstName"`
@@ -37,6 +38,10 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 		}
 		if !emailrg.MatchString(req.Email) {
 			backend.WriteJSONError(w, http.StatusBadRequest, "invalid email")
+			return
+		}
+		if !usrRgx.MatchString(req.Nickname) {
+			backend.WriteJSONError(w, http.StatusBadRequest, "invalid nickname")
 			return
 		}
 		if req.FirstName == "" || req.LastName == "" || req.Nickname == "" || req.Age == "" || req.Email == "" || req.Password == "" || req.Gender == "" {

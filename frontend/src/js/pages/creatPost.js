@@ -89,6 +89,12 @@ function handleCreatePost() {
       },
       body: JSON.stringify(postData),
     });
+
+    if (response.status === 401) {
+      router("/login");
+      return;
+    }
+
     console.log(response.statusText);
 
     if (response.ok) {

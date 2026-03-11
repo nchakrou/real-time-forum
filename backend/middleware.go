@@ -33,7 +33,7 @@ WHERE s.token = ? AND s.expires_at > datetime('now');
 	return user, nil
 }
 
-func AuthRequired(DB *sql.DB, next http.HandlerFunc) http.HandlerFunc {
+func Middleware(DB *sql.DB, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if _, err := GetUserIDFromRequest(DB, r); err != nil {
 			WriteJSONError(w, http.StatusUnauthorized, "login required")
@@ -42,5 +42,3 @@ func AuthRequired(DB *sql.DB, next http.HandlerFunc) http.HandlerFunc {
 		next.ServeHTTP(w, r)
 	}
 }
-
-

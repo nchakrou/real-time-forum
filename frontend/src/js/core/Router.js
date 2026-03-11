@@ -7,6 +7,7 @@ import { likedPosts } from "../pages/likes.js";
 import { chat } from "../pages/chat.js";
 import { ErrorPage } from "../pages/Error.js";
 import { states } from "./Listeners/postListners.js";
+import { ws } from "./WebSocket/initWs.js";
 
 export function router(path) {
   states.path = path;
@@ -19,6 +20,7 @@ export function router(path) {
   } else if (path === "/") {
     home();
   } else if (path === "/login") {
+    if (ws && ws.readyState !== WebSocket.CLOSED) ws.close();
     login();
   } else if (path === "/createpost") {
     createPost();
