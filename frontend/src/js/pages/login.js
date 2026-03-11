@@ -43,17 +43,25 @@ function handleLogin() {
         },
         body: JSON.stringify({ username, password }),
       };
-      const response = await fetch("/api/login", request);
+      try {
+        const response = await fetch("/api/login", request);
 
-      if (response.ok) {
-        init();
-      } else {
-        const data = await response.json().catch(() => ({}));
+        if (response.ok) {
+          init();
+        } else {
+          const data = await response.json().catch(() => ({}));
+          const errorElement = document.getElementById("error");
+          errorElement.style.display = "block";
+          console.log(data);
+
+          errorElement.textContent = data.error || "Invalid username or password";
+        }
+      } catch (error) {
         const errorElement = document.getElementById("error");
         errorElement.style.display = "block";
-        console.log(data);
-
-        errorElement.textContent = data.error || "Invalid username or password";
+        errorElement.textContent =
+          "Connection error: Please check your internet or server status.";
+        console.error("Login connection error:", error);
       }
     });
 }
