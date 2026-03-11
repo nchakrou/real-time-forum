@@ -324,9 +324,7 @@ li.active:hover {
     gap: 12px;
     align-items: center;
 }
-/* ============================
-   TOAST CONTAINER
-   ============================ */
+
    #toast-container {
     position: fixed;
     bottom: 24px;
@@ -338,9 +336,7 @@ li.active:hover {
     pointer-events: none;
   }
   
-  /* ============================
-     TOAST NOTIFICATION (Discord-style)
-     ============================ */
+ 
   .toast-notification {
     display: flex;
     align-items: center;
@@ -364,13 +360,11 @@ li.active:hover {
     transform: translateX(0) scale(1.02);
   }
   
-  /* أنيميشن الدخول */
   .toast-enter {
     opacity: 1;
     transform: translateX(0);
   }
   
-  /* أنيميشن الخروج */
   .toast-exit {
     opacity: 0;
     transform: translateX(120%);
@@ -507,8 +501,13 @@ li.active:hover {
     align-items: center;
     justify-content: center;
     padding: 0 4px;
+    z-index: 10000; 
   }
-  
+  .top-button {
+    position: relative; /* مهم ليظهر badge في المكان الصحيح */
+    padding: 10px 20px;
+    font-size: 16px;
+  }
  
   @media (max-width: 768px) {
     #toast-container {

@@ -63,7 +63,7 @@ export function chatHistory(data) {
     if (states.offset === 10) {
       chatViewport.scrollTop = chatViewport.scrollHeight;
     }
-  } else if (states.offset === 0) {
+  } else  if (data.Messages && data.Messages.length === 0 && states.offset === 0) {
     chatViewport.innerHTML = `
         <div class="empty-chat-state">
             <div class="empty-chat-icon">

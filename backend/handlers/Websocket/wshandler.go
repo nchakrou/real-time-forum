@@ -76,6 +76,8 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 				hub.SendPrivateMessage(db, userid, req.Target, req.Message, user.Nickname)
 			case "getChat":
 				hub.GetMessages(db, userid, req.Target, conn, user.Nickname, req.Offset)
+			case "get_notifications":
+				hub.GetNotifications(db, userid, conn)
 			}
 		}
 	}

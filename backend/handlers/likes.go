@@ -8,11 +8,10 @@ import (
 	"strconv"
 
 	"forum/backend"
-	"forum/backend/handlers/Websocket"
 )
 
 type LikeRequest struct {
-	Value int `json:"value"` // 1 = like, -1 = dislike
+	Value int `json:"value"` 
 }
 
 type LikeResponse struct {
@@ -21,7 +20,7 @@ type LikeResponse struct {
 	UserValue int `json:"userValue"`
 }
 
-func HandleLike(hub *Websocket.Hub, db *sql.DB, target string) http.HandlerFunc {
+func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("like")
 		if r.Method != http.MethodPost {

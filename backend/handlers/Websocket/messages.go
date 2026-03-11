@@ -3,44 +3,90 @@ package Websocket
 import (
 	"database/sql"
 	"log"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
 
 type Msg struct {
+	Type      string `json:"type"`
 	From      string `json:"from"`
-	Message   string `json:"message"`
+	Message   string `json:"message,omitempty"`
+	Content   string `json:"content,omitempty"`
 	CreatedAt string `json:"CreatedAt"`
 }
+
 type resChat struct {
 	Type     string `json:"type"`
 	Messages []Msg  `json:"Messages"`
 }
 
 func (hub *Hub) SendPrivateMessage(db *sql.DB, fromID int, toUsername string, message string, fromUsername string) {
+
 	toID, err := TargetID(db, toUsername)
 	if err != nil {
+		log.Println("Error getting target ID:", err)
 		return
 	}
-	_, err = db.Exec(
+
+	tx, err := db.Begin()
+	if err != nil {
+		log.Println("Error starting transaction:", err)
+		return
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(
 		"INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)",
 		fromID, toID, message,
 	)
 	if err != nil {
-		log.Println("Error saving message to database:", err)
+		log.Println("Error saving message:", err)
 		return
 	}
+
+	if fromID != toID {
+		_, err = tx.Exec(`
+		INSERT INTO notifications (sender_id, receiver_id, type, content)
+		VALUES (?, ?, ?, ?)`,
+			fromID, toID, "message", message,
+		)
+	}
+	if err != nil {
+		log.Println("Error saving notification:", err)
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Println("Error committing transaction:", err)
+		return
+	}
+
+	now := time.Now().Format(time.RFC3339)
+
 	hub.mu.Lock()
-	defer hub.mu.Unlock()
-	for _, conn := range hub.Clients[toID] {
-		resp := response{
-			Type:    "message",
-			From:    fromUsername,
-			Message: message,
+	conns := make([]*websocket.Conn, len(hub.Clients[toID]))
+	copy(conns, hub.Clients[toID])
+	hub.mu.Unlock()
+
+	for i, conn := range conns {
+		resp := Msg{
+			Type:      "private_message",
+			From:      fromUsername,
+			Message:   message,
+			CreatedAt: now,
 		}
+
 		if err := conn.WriteJSON(resp); err != nil {
-			log.Println("Error sending message to client:", err)
+			log.Println("Error sending message:", err)
 			conn.Close()
+
+			hub.mu.Lock()
+			clients := hub.Clients[toID]
+			if i < len(clients) {
+				hub.Clients[toID] = append(clients[:i], clients[i+1:]...)
+			}
+			hub.mu.Unlock()
 			continue
 		}
 	}
@@ -54,19 +100,43 @@ func TargetID(db *sql.DB, username string) (int, error) {
 	}
 	return id, nil
 }
+
 func (hub *Hub) GetMessages(db *sql.DB, fromID int, toUsername string, conn *websocket.Conn, fromUsername string, offset int) {
+
 	toID, err := TargetID(db, toUsername)
 	if err != nil {
 		log.Println("Error getting target ID:", err)
 		return
 	}
-	rows, err := db.Query("select u.nickname, m.content, m.created_at from messages m join users u on m.sender_id = u.id where (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?) ORDER BY m.created_at DESC LIMIT 10 OFFSET ?", fromID, toID, toID, fromID, offset)
+
+	_, err = db.Exec(`
+UPDATE notifications
+SET is_read = 1
+WHERE sender_id = ? AND receiver_id = ? AND type = 'message'
+`, toID, fromID)
+
+	if err != nil {
+		log.Println("Error updating notifications:", err)
+	}
+
+	rows, err := db.Query(`
+	select u.nickname, m.content, m.created_at 
+	from messages m 
+	join users u on m.sender_id = u.id 
+	where (m.sender_id = ? AND m.receiver_id = ?) 
+	OR (m.sender_id = ? AND m.receiver_id = ?) 
+	ORDER BY m.created_at DESC 
+	LIMIT 10 OFFSET ?`,
+		fromID, toID, toID, fromID, offset)
+
 	if err != nil {
 		log.Println("Error getting messages:", err)
 		return
 	}
 	defer rows.Close()
+
 	var Msgs []Msg
+
 	for rows.Next() {
 		var msg Msg
 		if err := rows.Scan(&msg.From, &msg.Message, &msg.CreatedAt); err != nil {
@@ -74,11 +144,16 @@ func (hub *Hub) GetMessages(db *sql.DB, fromID int, toUsername string, conn *web
 			continue
 		}
 
+		msg.Type = "message"
+
 		Msgs = append(Msgs, msg)
 	}
-	if err := conn.WriteJSON(resChat{Type: "chat_history", Messages: Msgs}); err != nil {
+
+	if err := conn.WriteJSON(resChat{
+		Type:     "chat_history",
+		Messages: Msgs,
+	}); err != nil {
 		log.Println("Error sending messages:", err)
 		return
 	}
-
 }

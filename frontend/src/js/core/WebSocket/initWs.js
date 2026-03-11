@@ -1,36 +1,61 @@
-import { OnlineUsers } from "../../components/pagesInit.js"
-import { message } from "./messages.js"
-import { chatHistory } from "./messages.js"
-import { showNotification } from "../WebSocket/shownotification.js";
+import { OnlineUsers } from "../../components/pagesInit.js";
+import { message } from "./messages.js";
+import { chatHistory } from "./messages.js";
+import { showNotification, storeNotification } from "../WebSocket/shownotification.js";
 
-export let ws
+export let ws;
+export let currentChatUser = null;
+
+export function setCurrentChatUser(username) {
+    currentChatUser = username;
+}
+
 export function OpenWS() {
     return new Promise((resolve, reject) => {
-        ws = new WebSocket("ws://localhost:8081/ws")
+        ws = new WebSocket("ws://localhost:8081/ws");
+
         ws.onopen = () => {
-            console.log("Connected to WebSocket server")
-            resolve()
-        }
+            console.log("Connected to WebSocket server");
+            ws.send(JSON.stringify({ type: "get_notifications" }));
+            resolve();
+        };
+
         ws.onmessage = (event) => {
-            console.log("Message from server:", event.data)
-            const data = JSON.parse(event.data)
-            if (data.type === "online_users") {
-                OnlineUsers(data.users)
-                console.log(data.users)
-            } else if (data.type === "chat_history") {
-                chatHistory(data)
-            } else if (data.type === "message") {
-                message(data)
-            } else if (data.type === "notification") {
-                showNotification(data)
+            const data = JSON.parse(event.data);
+            console.log("Message from server:", data);
+
+            switch (data.type) {
+                case "online_users":
+                    OnlineUsers(data.users);
+                    break;
+                case "chat_history":
+                    chatHistory(data);
+                    break;
+                case "private_message":
+                    handlePrivateMessage(data);
+                    break;
+                case "notifications_history":
+                    if (data.data && Array.isArray(data.data)) {
+                        data.data.forEach(n => storeNotification(n, false));
+                    }
+                    break;
             }
-        }
-        ws.onclose = () => {
-            console.log("Disconnected from WebSocket server")
-        }
+        };
+
+        ws.onclose = () => console.log("Disconnected from WebSocket server");
         ws.onerror = (error) => {
-            console.error("WebSocket error:", error)
-            reject(error)
-        }
-    })
+            console.error("WebSocket error:", error);
+            reject(error);
+        };
+    });
+}
+
+function handlePrivateMessage(data) {
+    const currentChat = new URLSearchParams(window.location.search).get("username");
+
+    if (currentChat === data.from) {
+        message(data);
+    } else {
+        showNotification(data, true);
+    }
 }
