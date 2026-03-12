@@ -59,7 +59,6 @@ ${Header}
 export function chat() {
   document.body.innerHTML = chatPage;
   pagesInit("/chat");
-  console.log(window.location.pathname);
   if (window.location.search) {
     const urlParams = new URLSearchParams(window.location.search);
     const username = urlParams.get("username");
@@ -84,7 +83,6 @@ function handleActiveChat(tagername) {
   //mobile handle
   const chatMain = document.getElementById("chat-main");
 
-  console.log(getComputedStyle(chatMain).display);
   if (
     !getComputedStyle(chatMain).display ||
     getComputedStyle(chatMain).display === "none"
@@ -130,6 +128,7 @@ function sentBtn() {
   document.getElementById("chat-send-btn").addEventListener("click", () => {
     const messageInput = document.getElementById("chat-message-input");
     const message = messageInput.value;
+    if (!message.trim()) return;
     if (message) {
       ws.send(
         JSON.stringify({
@@ -145,5 +144,13 @@ function sentBtn() {
     messageDiv.classList.add("Mymessage");
     messageDiv.textContent = message;
     chatViewport.appendChild(messageDiv);
+    const usersDiv = document.getElementsByClassName("list-users")[0];
+    const targetUsername = window.location.search;
+    const urlParams = new URLSearchParams(targetUsername);
+    const username = urlParams.get("username");
+    const target = document.querySelector(`[data-username="${username}"]`);
+    if (target) {
+      usersDiv.prepend(target);
+    }
   });
 }

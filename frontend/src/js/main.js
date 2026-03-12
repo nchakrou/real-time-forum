@@ -15,7 +15,6 @@ export async function init(path) {
     path = window.location.pathname + window.location.search;
   }
   const [user, log] = await isLogged();
-  console.log(log, user, path);
 
   if (log && user) {
     try {
@@ -46,7 +45,6 @@ export async function isLogged() {
     method: "GET",
     credentials: "include",
   });
-  console.log(req);
 
   if (req.ok) {
     const data = await req.json();

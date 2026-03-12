@@ -30,8 +30,12 @@ type response struct {
 	From      string   `json:"from,omitempty"`
 	Message   string   `json:"message,omitempty"`
 	CreatedAt string   `json:"timestamp,omitempty"`
+	Chat      []Chat   `json:"chat,omitempty"`
 }
-
+type Chat struct {
+	Target    string `json:"target"`
+	CreatedAt string `json:"created_at"`
+}
 func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
@@ -78,6 +82,8 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 				hub.GetMessages(db, userid, req.Target, conn, user.Nickname, req.Offset)
 			case "get_notifications":
 				hub.GetNotifications(db, userid, conn)
+			case "get_chat_users":
+				hub.GetChatUsers(db, userid, conn)
 			}
 		}
 	}

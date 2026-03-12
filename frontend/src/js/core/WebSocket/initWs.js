@@ -1,7 +1,11 @@
-import { OnlineUsers } from "../../components/pagesInit.js";
+import { OnlineUsers, ChatUsers } from "../../components/pagesInit.js";
 import { message } from "./messages.js";
 import { chatHistory } from "./messages.js";
-import { showNotification, storeNotification } from "../WebSocket/shownotification.js";
+import {
+  showNotification,
+  storeNotification,
+} from "../WebSocket/shownotification.js";
+import { Popup } from "../../components/Popup.js";
 
 export let ws;
 export let currentChatUser = null;
@@ -43,9 +47,12 @@ export function OpenWS() {
         case "private_message":
           handlePrivateMessage(data);
           break;
+        case "chat_users":
+          ChatUsers(data.chat);
+          break;
         case "notifications_history":
           if (data.data && Array.isArray(data.data)) {
-                        data.data.forEach(n => storeNotification(n, false));
+            data.data.forEach((n) => storeNotification(n, false));
           }
           break;
       }
@@ -53,14 +60,16 @@ export function OpenWS() {
 
     ws.onclose = () => console.log("Disconnected from WebSocket server");
     ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
+      Popup.show("Error connecting");
       reject(error);
     };
   });
 }
 
 function handlePrivateMessage(data) {
-    const currentChat = new URLSearchParams(window.location.search).get("username");
+  const currentChat = new URLSearchParams(window.location.search).get(
+    "username",
+  );
 
   if (currentChat === data.from) {
     message(data);

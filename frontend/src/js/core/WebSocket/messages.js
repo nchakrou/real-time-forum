@@ -2,7 +2,9 @@ import { states } from "../Listeners/postListners.js";
 import { showNotification } from "../WebSocket/shownotification.js";
 
 export function message(data) {
-  const currentChat = new URLSearchParams(window.location.search).get("username");
+  const currentChat = new URLSearchParams(window.location.search).get(
+    "username",
+  );
 
   if (window.location.pathname === "/chat" && currentChat === data.from) {
     const chatViewport = document.getElementById("chat-viewport");
@@ -25,7 +27,6 @@ export function message(data) {
     showNotification(data);
   }
 }
-
 
 export function chatHistory(data) {
   console.log("end", states.isEnd);
@@ -63,7 +64,11 @@ export function chatHistory(data) {
     if (states.offset === 10) {
       chatViewport.scrollTop = chatViewport.scrollHeight;
     }
-  } else  if (data.Messages && data.Messages.length === 0 && states.offset === 0) {
+  } else if (
+    data.Messages &&
+    data.Messages.length === 0 &&
+    states.offset === 0
+  ) {
     chatViewport.innerHTML = `
         <div class="empty-chat-state">
             <div class="empty-chat-icon">
