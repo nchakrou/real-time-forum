@@ -7,6 +7,7 @@ export const postButtons = {
   dislike_button: (e) => dislikeListener(e),
   comment_button: (e) => commentListener(e),
   Submit_comment: (e) => submitCommentListener(e),
+  "load-more-comments": (e) => loadMoreComments(e),
 };
 
 export const states = {
@@ -14,11 +15,13 @@ export const states = {
   path: "",
   isEnd: false,
 };
+
 export async function fetchPosts(path) {
   if (states.isEnd) return;
   console.log("fetching posts", states.offset, path, states.isEnd);
 
   const isFirstLoad = states.offset === 0;
+
   try {
     let fetchPath = path;
     const url = new URL(path, window.location.origin);
@@ -49,11 +52,14 @@ export async function fetchPosts(path) {
     Popup.show("Connection error");
   }
 }
+
 export function createpostsContainer(posts, isFirstLoad = false) {
   const postsContainer = document.getElementById("posts-container");
+
   if (isFirstLoad) {
     postsContainer.innerHTML = "";
   }
+
   if (!posts || posts.length === 0) {
     if (isFirstLoad) {
       const noPosts = document.createElement("p");
@@ -65,43 +71,68 @@ export function createpostsContainer(posts, isFirstLoad = false) {
       const postElement = document.createElement("div");
       postElement.classList.add("post");
       postElement.dataset.postId = post.id;
+
       const h3 = document.createElement("h3");
       const p = document.createElement("p");
+
       h3.textContent = post.title;
       p.textContent = post.content;
 
       postElement.appendChild(h3);
       postElement.appendChild(p);
+
       postElement.insertAdjacentHTML(
         "beforeend",
         `
-          
-          <div class = "post-categories">
+        <div class="post-categories">
           ${(post.categories || []).map((cat) => `<span class="category-tag">${cat}</span>`).join("")}
-          </div>
-          <div class= "post-buttons">
-          <button type="submit" class = "like_button"><img src="../src/assets/like.svg" alt="like"> <span>${post.likes}</span></button>
-          <button type="submit" class = "dislike_button"><img src="../src/assets/dislike.svg" alt="dislike"> <span>${post.dislikes}</span></button>
-          <button type="submit" class = "comment_button"><img src="../src/assets/comment.svg" alt="comment"> <span>${post.comments}</span></button>
-          </div>
-          <div class = "comments-container hidden">
-          <div class = "comments-section">
-          <input type="text" class = "comment-input" placeholder="Add a comment...">
-          <button type="submit" class = "Submit_comment"><img src="../src/assets/send.svg" alt="send"></button>
-          </div>
+        </div>
+      
+        <div class="post-buttons">
+          <button type="submit" class="like_button">
+            <img src="../src/assets/like.svg">
+            <span>${post.likes}</span>
+          </button>
+      
+          <button type="submit" class="dislike_button">
+            <img src="../src/assets/dislike.svg">
+            <span>${post.dislikes}</span>
+          </button>
+      
+          <button type="submit" class="comment_button">
+            <img src="../src/assets/comment.svg">
+            <span>${post.comments}</span>
+          </button>
+        </div>
+      
+       <div class="comments-container hidden">
 
-          <div class = "comments">
-          </div>
-          </div>
-        `,
+  <div class="comments">
+  </div>
+
+  <button type="button" class="load-more-comments hidden">
+    Load more comments
+  </button>
+
+  <div class="comments-section">
+    <input type="text" class="comment-input" placeholder="Add a comment...">
+    <button type="submit" class="Submit_comment">
+      <img src="../src/assets/send.svg">
+    </button>
+  </div>
+
+</div>
+        `
       );
       postsContainer.appendChild(postElement);
 
       loadComments(postElement);
     });
+
     PostButtonsListener();
   }
 }
+
 export function PostButtonsListener() {
   const postsContainer = document.getElementById("posts-container");
 
@@ -111,18 +142,18 @@ export function PostButtonsListener() {
   clone.addEventListener("click", (e) => {
     const button = e.target.closest("button");
     if (!button) return;
+
     const buttonClass = button.classList[0];
     if (postButtons[buttonClass]) postButtons[buttonClass](e);
   });
 }
+
 async function submitCommentListener(e) {
   const post = e.target.closest(".post");
   const commentInput = post.querySelector(".comment-input");
 
   const commentText = commentInput.value.trim();
-  if (!commentText) {
-    return;
-  }
+  if (!commentText) return;
 
   const postId = post.dataset.postId;
 
@@ -149,12 +180,17 @@ async function submitCommentListener(e) {
     }
 
     const data = await res.json();
+
     if (data.status === "ok") {
       commentInput.value = "";
+
+      post.dataset.commentOffset = 0;
       const commentsContainer = post.querySelector(".comments");
-      const newComment = document.createElement("p");
-      newComment.innerHTML = `<strong>You:</strong> ${commentText}`;
-      commentsContainer.appendChild(newComment);
+      commentsContainer.innerHTML = "";
+      const loadMoreBtn = post.querySelector(".load-more-comments");
+      loadMoreBtn.classList.add("hidden"); 
+
+      await loadComments(post);
     }
   } catch (err) {
     console.error("Error adding comment:", err);
@@ -164,13 +200,16 @@ async function submitCommentListener(e) {
 async function likeListener(e) {
   const post = e.target.closest(".post");
   const postId = post.dataset.postId;
+
   console.log("like click, postid =", postId);
+
   await toggleLike(postId, 1);
 }
 
 async function dislikeListener(e) {
   const post = e.target.closest(".post");
   const postId = post.dataset.postId;
+
   await toggleLike(postId, -1);
 }
 
@@ -187,35 +226,49 @@ async function commentListener(e) {
   const isHidden = section.classList.toggle("hidden");
 
   if (!isHidden) {
-    await loadComments(post);
+    post.dataset.commentOffset = 0;
+post.querySelector(".comments").innerHTML = "";
+await loadComments(post);
   }
 }
 
 async function loadComments(post) {
   const commentsContainer = post.querySelector(".comments");
+  const loadMoreBtn = post.querySelector(".load-more-comments");
   const postId = post.dataset.postId;
+  let offset = parseInt(post.dataset.commentOffset || 0);
 
   try {
-    const res = await fetch(`/api/comments?post_id=${postId}`);
-
-    if (res.status === 401) {
-      router("/login");
-      return;
-    }
-
+    const res = await fetch(`/api/comments?post_id=${postId}&offset=${offset}&limit=10`);
     if (!res.ok) throw new Error("Failed to fetch comments");
-
     const comments = await res.json();
 
-    commentsContainer.innerHTML = "";
-    if (comments && comments.length >= 0) {
-      comments.forEach((c) => {
-        const newComment = document.createElement("p");
-        newComment.innerHTML = `<strong>${c.username}:</strong> ${c.content}`;
-        commentsContainer.appendChild(newComment);
-      });
+    comments.forEach((c) => {
+      const newComment = document.createElement("div");
+      newComment.classList.add("comment");
+      newComment.innerHTML = `
+        <span class="comment-user">${c.username}</span>
+        <span class="comment-text">${c.content}</span>
+      `;
+      commentsContainer.appendChild(newComment);
+    });
+
+    post.dataset.commentOffset = offset + comments.length;
+
+    if (comments.length === 10) {
+      loadMoreBtn.classList.remove("hidden");
+    } else {
+      loadMoreBtn.classList.add("hidden");
     }
+
   } catch (err) {
     console.error("Error loading comments:", err);
   }
+}
+async function loadMoreComments(e) {
+
+  const post = e.target.closest(".post");
+
+  await loadComments(post);
+
 }

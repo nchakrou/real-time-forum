@@ -144,6 +144,7 @@ function sentBtn() {
     messageDiv.classList.add("Mymessage");
     messageDiv.textContent = message;
     chatViewport.appendChild(messageDiv);
+    chatViewport.scrollTop = chatViewport.scrollHeight;
     const usersDiv = document.getElementsByClassName("list-users")[0];
     const targetUsername = window.location.search;
     const urlParams = new URLSearchParams(targetUsername);
