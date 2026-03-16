@@ -30,6 +30,7 @@ export function OpenWS() {
     ws.onopen = () => {
       console.log("Connected to WebSocket server");
       ws.send(JSON.stringify({ type: "get_notifications" }));
+
       resolve();
     };
 
@@ -55,6 +56,9 @@ export function OpenWS() {
             data.data.forEach((n) => storeNotification(n, false));
           }
           break;
+        case "join":
+          handleJoin(data);
+          break;
       }
     };
 
@@ -76,4 +80,33 @@ function handlePrivateMessage(data) {
   } else {
     showNotification(data, true);
   }
+}
+
+function handleJoin(data) {
+  const users = document.getElementsByClassName("users")[0];
+  const msg = users.querySelector("p");
+  let list;
+  if (msg) {
+    msg.remove();
+    list = document.createElement("div");
+    list.className = "list-users";
+    users.appendChild(list);
+  }
+  const userItem = document.createElement("div");
+  userItem.className = "user-item";
+  userItem.dataset.username = data.from;
+  userItem.addEventListener("click", () => {
+    router(`/chat?username=${data.from}`);
+  });
+
+  const avatar = data.from.charAt(0).toUpperCase();
+  userItem.innerHTML = `
+    <div class="user-item-avatar">${avatar}</div>
+    <div class="user-item-info">
+      <span class="user-item-name">${data.from}</span>
+    </div>`;
+  if (!list) {
+    list = document.getElementsByClassName("list-users")[0];
+  }
+  list.prepend(userItem);
 }

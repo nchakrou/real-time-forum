@@ -3,6 +3,7 @@ package Websocket
 import (
 	"database/sql"
 	"fmt"
+	"forum/backend"
 	"log"
 
 	"github.com/gorilla/websocket"
@@ -77,4 +78,21 @@ ORDER BY m.created_at DESC;`
 	if err := conn.WriteJSON(res); err != nil {
 		log.Println("Error writing JSON:", err)
 	}
+}
+func (h *Hub) Join(db *sql.DB, user backend.User, conn *websocket.Conn) {
+	var res response
+	res.Type = "join"
+	res.From = user.Nickname
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for userid, c := range h.Clients {
+		if userid == user.ID {
+			continue
+		}
+		for _, con := range c {
+
+			con.WriteJSON(res)
+		}
+	}
+
 }

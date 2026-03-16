@@ -36,8 +36,8 @@ async function populateProfile() {
 export function OnlineUsers(users) {
   if (!ws) return;
   const usersContainer = document.querySelector(".users");
-  usersContainer.innerHTML = "<h2>Users</h2>";
 
+  usersContainer.innerHTML = "<h2>Users</h2>";
   if (!users || users.length === 0) {
     const noUsers = document.createElement("p");
     noUsers.style.marginTop = "20px";
@@ -62,7 +62,6 @@ export function OnlineUsers(users) {
     userItem.innerHTML = `
       <div class="user-item-avatar">${avatar}</div>
       <span class="user-item-name">${user}</span>
-      <div class="user-status-dropdown"></div>
     `;
     listUsers.appendChild(userItem);
   });
@@ -71,8 +70,6 @@ export function OnlineUsers(users) {
 }
 
 export function ChatUsers(chats) {
-    console.log("dsssssssss",chats);
-    
   const usersContainer = document.querySelector(".users");
   if (!usersContainer) return;
   usersContainer.innerHTML = "<h3>Messages</h3>";
@@ -88,7 +85,7 @@ export function ChatUsers(chats) {
   const listUsers = document.createElement("div");
   listUsers.className = "list-users";
 
-  chats.forEach(({ target}) => {
+  chats.forEach(({ target }) => {
     const userItem = document.createElement("div");
     userItem.className = "user-item";
     userItem.dataset.username = target;

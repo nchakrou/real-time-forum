@@ -36,6 +36,7 @@ type Chat struct {
 	Target    string `json:"target"`
 	CreatedAt string `json:"created_at"`
 }
+
 func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
@@ -60,6 +61,7 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 		hub.mu.Lock()
 		hub.Clients[userid] = append(hub.Clients[userid], conn)
 		hub.mu.Unlock()
+		hub.Join(db, user, conn)
 		for {
 			_, message, err := conn.ReadMessage()
 			if err != nil {
@@ -84,6 +86,7 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 				hub.GetNotifications(db, userid, conn)
 			case "get_chat_users":
 				hub.GetChatUsers(db, userid, conn)
+			
 			}
 		}
 	}
