@@ -3,19 +3,38 @@ import { router } from "../Router.js";
 const toastQueue = [];
 let isToastVisible = false;
 
+
 export function showNotification(data, showToast = true) {
     storeNotification(data, showToast);
     if (showToast) enqueueToast(data);
 }
 
+export function removeStoredNotification(username) {
+    const bar = document.getElementById("notification-list");
+    if (!bar) return;
+
+    const notif = findNotifByUser(bar, username);
+    if (notif) {
+        updateBadge(-parseInt(notif.dataset.count));
+        notif.remove();
+    }
+}
+
+
 function enqueueToast(data) {
+    const existing = toastQueue.find((item) => item.from === data.from);
+    if (existing) {
+        existing.message = data.message;
+        return;
+    }
+
     toastQueue.push(data);
     if (!isToastVisible) showNextToast();
 }
 
 function showNextToast() {
     if (toastQueue.length === 0) {
-        isToastVisible = false;
+        isToastVisible = true
         return;
     }
 
@@ -47,39 +66,55 @@ function displayToast(data, callback) {
     container.appendChild(toast);
     requestAnimationFrame(() => toast.classList.add("toast-enter"));
 
-    toast.addEventListener("click", (e) => {
-        if (!e.target.classList.contains("toast-close")) {
+    let dismissed = false;
+    let autoTimer = null;
+
+    const dismiss = (navigate = false) => {
+        if (dismissed) return;
+        dismissed = true;
+
+        if (autoTimer) clearTimeout(autoTimer);
+
+        if (navigate) {
             toast.remove();
             router(`/chat?username=${data.from}`);
             callback();
+            return;
+        }
+
+        toast.classList.add("toast-exit");
+        setTimeout(() => {
+            toast.remove();
+            callback();
+        }, 300);
+    };
+
+    toast.addEventListener("click", (e) => {
+        if (!e.target.classList.contains("toast-close")) {
+            dismiss(true);
         }
     });
 
     toast.querySelector(".toast-close").addEventListener("click", (e) => {
         e.stopPropagation();
-        toast.classList.add("toast-exit");
-        setTimeout(() => { toast.remove(); callback(); }, 300);
+        dismiss(false);
     });
 
-    setTimeout(() => {
-        if (toast.parentElement) {
-            toast.classList.add("toast-exit");
-            setTimeout(() => { toast.remove(); callback(); }, 300);
-        }
-    }, 5000);
+    autoTimer = setTimeout(() => dismiss(false), 5000);
 }
+
 
 export function storeNotification(data, showToast = true) {
     const bar = document.getElementById("notification-list");
     if (!bar) return;
 
-    let notif = bar.querySelector(`[data-user="${data.from}"]`);
+    let notif = findNotifByUser(bar, data.from);
 
     if (!notif) {
         notif = document.createElement("div");
         notif.classList.add("stored-notification");
         notif.dataset.user = data.from;
-        notif.dataset.count = "1";
+        notif.dataset.count = "0"; 
         notif.dataset.lastMessage = data.message;
 
         notif.innerHTML = `
@@ -87,46 +122,57 @@ export function storeNotification(data, showToast = true) {
             <div class="stored-notif-content">
                 <div class="stored-notif-header">
                     <span class="stored-notif-name">${escapeHTML(data.from)}</span>
-                    <span class="stored-notif-badge">1</span>
+                    <span class="stored-notif-badge">0</span>
                 </div>
                 <div class="stored-notif-preview">${truncateUTF8(data.message, 40)}</div>
             </div>
         `;
 
         notif.addEventListener("click", () => {
-            updateBadge(-parseInt(notif.dataset.count));
+            const badgedCount = parseInt(notif.dataset.badgedCount || "0");
+            updateBadge(-badgedCount);
             notif.remove();
             router(`/chat?username=${data.from}`);
         });
 
         bar.prepend(notif);
-    } else {
-        const count = parseInt(notif.dataset.count) + 1;
-        notif.dataset.count = count.toString();
-        notif.dataset.lastMessage = data.message;
-        notif.querySelector(".stored-notif-badge").textContent = count;
-        notif.querySelector(".stored-notif-preview").textContent = truncateUTF8(data.message, 40);
-
-        bar.prepend(notif);
     }
 
-    if (showToast) updateBadge(1); // فقط إذا كان إشعار جديد
+    const count = parseInt(notif.dataset.count) + 1;
+    notif.dataset.count = count.toString();
+    notif.dataset.lastMessage = data.message;
+    notif.querySelector(".stored-notif-badge").textContent = count;
+    notif.querySelector(".stored-notif-preview").textContent = truncateUTF8(
+        data.message,
+        40
+    );
+
+   
+    bar.prepend(notif);
+
+
+    if (showToast) {
+        const badgedCount = parseInt(notif.dataset.badgedCount || "0") + 1;
+        notif.dataset.badgedCount = badgedCount.toString();
+        updateBadge(1);
+    }
 }
 
-function removeStoredNotification(username) {
-    const bar = document.getElementById("notification-list");
-    if (!bar) return;
-    const notif = bar.querySelector(`[data-user="${username}"]`);
-    if (notif) {
-        updateBadge(-parseInt(notif.dataset.count));
-        notif.remove();
-    }
+
+
+function findNotifByUser(container, username) {
+    return (
+        [...container.children].find((el) => el.dataset.user === username) ||
+        null
+    );
 }
 
 function updateBadge(change) {
     const badge = document.getElementById("notification-badge");
     if (!badge) return;
-    const current = parseInt(badge.textContent || "0") + change;
+
+    const current = Math.max(0, parseInt(badge.textContent || "0") + change);
+
     if (current <= 0) {
         badge.style.display = "none";
         badge.textContent = "0";
