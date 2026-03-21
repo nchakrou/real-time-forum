@@ -3,7 +3,6 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"forum/backend"
 	"log"
 	"net/http"
@@ -19,6 +18,7 @@ type Post struct {
 	Dislikes   int      `json:"dislikes"`
 	Comments   int      `json:"comments"`
 	Categories []string `json:"categories"`
+	UserValue  int      `json:"userValue"`
 }
 
 func GetPostsHandler(db *sql.DB) http.HandlerFunc {
@@ -28,7 +28,12 @@ func GetPostsHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		var err error
+		user, err := backend.GetUserIDFromRequest(db, r)
+		userID := 0
+		if err == nil {
+			userID = user.ID
+		}
+
 		category := r.URL.Query().Get("category")
 		offsetstr := r.URL.Query().Get("offset")
 		offset, err := strconv.Atoi(offsetstr)
@@ -38,52 +43,51 @@ func GetPostsHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		var rows *sql.Rows
+
 		if category == "" {
 			rows, err = db.Query(`
-		SELECT 
-		p.id, p.title, p.content, p.likes, p.dislikes, p.comments,
-		GROUP_CONCAT(c.name) AS categories
-		FROM posts p
-		JOIN post_categories pc ON pc.post_id = p.id
-		JOIN categories c ON c.id = pc.category_id
-		GROUP BY p.id 
-		ORDER BY p.created_at DESC
-	LIMIT 10 OFFSET ?
-		`, offset)
+				SELECT 
+					p.id, p.title, p.content, p.likes, p.dislikes, p.comments,
+					GROUP_CONCAT(c.name) AS categories,
+					COALESCE(l.value, 0) as userValue
+				FROM posts p
+				JOIN post_categories pc ON pc.post_id = p.id
+				JOIN categories c ON c.id = pc.category_id
+				LEFT JOIN likes l ON l.post_id = p.id AND l.user_id = ?
+				GROUP BY p.id 
+				ORDER BY p.created_at DESC
+				LIMIT 10 OFFSET ?
+			`, userID, offset)
 
-			if err != nil {
-				backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again.")
-				log.Println("Error querying posts:", err)
-				return
-			}
 		} else {
 			rows, err = db.Query(`
-			SELECT 
-    p.id, p.title, p.content, p.likes, p.dislikes, p.comments,
-    (SELECT GROUP_CONCAT(c2.name)
-     FROM post_categories pc2
-     JOIN categories c2 ON c2.id = pc2.category_id
-     WHERE pc2.post_id = p.id
-    ) AS categories
-FROM posts p
-WHERE p.id IN (
-   SELECT pc3.post_id
-   FROM post_categories pc3
-   JOIN categories c3 ON c3.id = pc3.category_id
-   WHERE c3.name = ?
-)
-ORDER BY p.created_at DESC
-LIMIT 10 OFFSET ?
-
-			`, category, offset)
-			if err != nil {
-				backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again.")
-				log.Println("Error querying posts with category:", err)
-				return
-			}
+				SELECT 
+					p.id, p.title, p.content, p.likes, p.dislikes, p.comments,
+					(SELECT GROUP_CONCAT(c2.name)
+					 FROM post_categories pc2
+					 JOIN categories c2 ON c2.id = pc2.category_id
+					 WHERE pc2.post_id = p.id) AS categories,
+					COALESCE(l.value, 0) as userValue
+				FROM posts p
+				LEFT JOIN likes l ON l.post_id = p.id AND l.user_id = ?
+				WHERE p.id IN (
+					SELECT pc3.post_id
+					FROM post_categories pc3
+					JOIN categories c3 ON c3.id = pc3.category_id
+					WHERE c3.name = ?
+				)
+				ORDER BY p.created_at DESC
+				LIMIT 10 OFFSET ?
+			`, userID, category, offset)
 		}
 
+		if err != nil {
+			backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong")
+			log.Println("Error querying posts:", err)
+			return
+		}
 		defer rows.Close()
+
 		var posts = struct {
 			Posts []Post
 			IsEnd bool
@@ -91,29 +95,25 @@ LIMIT 10 OFFSET ?
 			Posts: []Post{},
 			IsEnd: false,
 		}
+
 		for rows.Next() {
 			var post Post
 			var category string
-			if err := rows.Scan(&post.Id, &post.Title, &post.Content, &post.Likes, &post.Dislikes, &post.Comments, &category); err != nil {
-				backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again.")
+			err := rows.Scan(&post.Id, &post.Title, &post.Content, &post.Likes, &post.Dislikes, &post.Comments, &category, &post.UserValue)
+			if err != nil {
+				backend.WriteJSONError(w, http.StatusInternalServerError, "scan error")
 				log.Println("Error scanning post:", err)
 				return
 			}
-
 			post.Categories = strings.Split(category, ",")
 			posts.Posts = append(posts.Posts, post)
 		}
+
 		if len(posts.Posts) < 10 {
-			fmt.Println("end of posts", len(posts.Posts), offset)
 			posts.IsEnd = true
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(posts); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			log.Println("Error encoding posts to JSON:", err)
-			return
-		}
-
+		json.NewEncoder(w).Encode(posts)
 	}
 }

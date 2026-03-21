@@ -125,6 +125,11 @@ export function createpostsContainer(posts, isFirstLoad = false) {
         `
       );
       postsContainer.appendChild(postElement);
+      const likeBtn = postElement.querySelector(".like_button");
+      const dislikeBtn = postElement.querySelector(".dislike_button");
+
+      likeBtn.classList.toggle("active", post.userValue === 1);
+      dislikeBtn.classList.toggle("active", post.userValue === -1);
 
       loadComments(postElement);
     });
@@ -181,17 +186,24 @@ async function submitCommentListener(e) {
 
     const data = await res.json();
 
-    if (data.status === "ok") {
-      commentInput.value = "";
 
-      post.dataset.commentOffset = 0;
-      const commentsContainer = post.querySelector(".comments");
-      commentsContainer.innerHTML = "";
-      const loadMoreBtn = post.querySelector(".load-more-comments");
-      loadMoreBtn.classList.add("hidden"); 
+if (data.status === "ok") {
+  commentInput.value = "";
 
-      await loadComments(post);
-    }
+  const commentBtn = post.querySelector(".comment_button span");
+
+  commentBtn.textContent = data.comments;
+
+  post.dataset.commentOffset = 0;
+  const commentsContainer = post.querySelector(".comments");
+  commentsContainer.innerHTML = "";
+
+  const loadMoreBtn = post.querySelector(".load-more-comments");
+  loadMoreBtn.classList.add("hidden");
+
+  await loadComments(post);
+}
+    
   } catch (err) {
     console.error("Error adding comment:", err);
   }
