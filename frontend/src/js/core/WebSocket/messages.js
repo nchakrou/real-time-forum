@@ -1,10 +1,14 @@
 import { states } from "../Listeners/postListners.js";
 import { showNotification } from "../WebSocket/shownotification.js";
+import { updateUserList } from "../../utils/chatUtils.js";
 
 export function message(data) {
   const currentChat = new URLSearchParams(window.location.search).get(
     "username",
   );
+  if (window.location.pathname === "/chat") {
+    updateUserList(data.from);
+  }
 
   if (window.location.pathname === "/chat" && currentChat === data.from) {
     const chatViewport = document.getElementById("chat-viewport");
@@ -23,7 +27,10 @@ export function message(data) {
     div.appendChild(p);
     chatViewport.appendChild(div);
     chatViewport.scrollTop = chatViewport.scrollHeight;
-  } else {
+  } else if (
+    window.location.pathname === "/chat" &&
+    currentChat !== data.from
+  ) {
     showNotification(data);
   }
 }

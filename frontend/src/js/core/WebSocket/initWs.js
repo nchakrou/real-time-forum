@@ -6,6 +6,7 @@ import {
   storeNotification,
 } from "../WebSocket/shownotification.js";
 import { Popup } from "../../components/Popup.js";
+import { updateUserList } from "../../utils/chatUtils.js";
 
 export let ws;
 export let currentChatUser = null;
@@ -57,7 +58,9 @@ export function OpenWS() {
           }
           break;
         case "join":
-          handleJoin(data);
+          if (window.location.pathname !== "/chat") {
+            handleJoin(data);
+          }
           break;
       }
     };
@@ -74,7 +77,9 @@ function handlePrivateMessage(data) {
   const currentChat = new URLSearchParams(window.location.search).get(
     "username",
   );
-
+  if (window.location.pathname === "/chat") {
+    updateUserList(data.from);
+  }
   if (currentChat === data.from) {
     message(data);
   } else {
@@ -83,7 +88,7 @@ function handlePrivateMessage(data) {
 }
 
 function handleJoin(data) {
-  const users = document.getElementsByClassName("users")[0];
+  const users = document.getElementsByClassName("online-users")[0];
   const msg = users.querySelector("p");
   let list;
   if (msg) {
@@ -92,6 +97,11 @@ function handleJoin(data) {
     list.className = "list-users";
     users.appendChild(list);
   }
+  const flag = document.querySelector(
+    `.user-item[data-username="${data.from}"]`,
+  );
+  if (flag) return;
+
   const userItem = document.createElement("div");
   userItem.className = "user-item";
   userItem.dataset.username = data.from;

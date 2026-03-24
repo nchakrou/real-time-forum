@@ -41,7 +41,7 @@ const createPostPage = `${Header}
   <button id = "submitpost">Create Post</button>
     
   </div>
-<div class = "users">
+<div class = "online-users">
   <h2>Users</h2>
 </div>
 </div>`;

@@ -5,12 +5,13 @@ import { router } from "../core/Router.js";
 import { Popup } from "../components/Popup.js";
 import { states } from "../core/Listeners/postListners.js";
 import { throttle } from "../utils/throttle.js";
+import { updateUserList } from "../utils/chatUtils.js";
 const chatPage = `
 ${Header}
 <main class="app-chat">
     <div class="chat-sidebar" id="chat-sidebar">
         <div class="sidebar-header">
-            <h3>Messages</h3>
+            <h3>Conversations</h3>
         </div>
         <div class="users chat-users-list">
         </div>
@@ -145,13 +146,10 @@ function sentBtn() {
     messageDiv.textContent = message;
     chatViewport.appendChild(messageDiv);
     chatViewport.scrollTop = chatViewport.scrollHeight;
-    const usersDiv = document.getElementsByClassName("list-users")[0];
-    const targetUsername = window.location.search;
-    const urlParams = new URLSearchParams(targetUsername);
+    chatViewport.scrollTop = chatViewport.scrollHeight;
+    const user = window.location.search;
+    const urlParams = new URLSearchParams(user);
     const username = urlParams.get("username");
-    const target = document.querySelector(`[data-username="${username}"]`);
-    if (target) {
-      usersDiv.prepend(target);
-    }
+    updateUserList(username);
   });
 }

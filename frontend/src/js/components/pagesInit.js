@@ -35,7 +35,7 @@ async function populateProfile() {
 }
 export function OnlineUsers(users) {
   if (!ws) return;
-  const usersContainer = document.querySelector(".users");
+  const usersContainer = document.querySelector(".online-users");
 
   usersContainer.innerHTML = "<h2>Users</h2>";
   if (!users || users.length === 0) {
@@ -72,12 +72,12 @@ export function OnlineUsers(users) {
 export function ChatUsers(chats) {
   const usersContainer = document.querySelector(".users");
   if (!usersContainer) return;
-  usersContainer.innerHTML = "<h3>Messages</h3>";
 
   if (!chats || chats.length === 0) {
     const noChats = document.createElement("p");
     noChats.style.marginTop = "20px";
     noChats.textContent = "No conversations yet";
+    noChats.id = "no-chats";
     usersContainer.appendChild(noChats);
     return;
   }
