@@ -21,18 +21,15 @@ type Pot struct {
 
 func HandleLikedPosts(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
-		if r.Method != http.MethodGet {
+	if r.Method != http.MethodGet {
 			backend.WriteJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
 			return
 		}
-
 		user, err := backend.GetUserIDFromRequest(db, r)
 		if err != nil {
 			backend.WriteJSONError(w, http.StatusUnauthorized, "login required")
 			return
 		}
-
 		query := `
 		SELECT 
 			p.id,
@@ -49,7 +46,6 @@ func HandleLikedPosts(db *sql.DB) http.HandlerFunc {
 		WHERE l.user_id = ? AND l.value = 1
 		ORDER BY p.created_at DESC;
 		`
-
 		rows, err := db.Query(query, user.ID)
 		if err != nil {
 			backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
@@ -62,26 +58,16 @@ func HandleLikedPosts(db *sql.DB) http.HandlerFunc {
 		for rows.Next() {
 			var p Pot
 			if err := rows.Scan(
-				&p.ID,
-				&p.Title,
-				&p.Content,
-				&p.UserID,
-				&p.Username,
-				&p.CreatedAt,
-				&p.Likes,
-				&p.Dislikes,
-			); err != nil {
+				&p.ID, &p.Title, &p.Content, &p.UserID, &p.Username, &p.CreatedAt, &p.Likes, &p.Dislikes); err != nil {
 				backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
 				return
 			}
 			posts = append(posts, p)
 		}
-
 		if err = rows.Err(); err != nil {
 			backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
 			return
 		}
-
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(posts)
 	}
