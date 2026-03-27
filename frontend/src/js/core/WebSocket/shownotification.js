@@ -33,11 +33,11 @@ export function showNotification(data, showToast = true) {
     }
 
     markChatAsUnread(data.from);
-    storeNotification(data, showToast);
-
     if (isOnChatPage()) {
         return;
     }
+    storeNotification(data, showToast);
+
 
     if (showToast) enqueueToast(data);
 }
