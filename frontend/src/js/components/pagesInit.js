@@ -7,66 +7,75 @@ import { isLogged } from "../main.js";
 import { Popup } from "../components/Popup.js";
 
 export function pagesInit(path = "/") {
-  ProfileDropdown();
-  populateProfile();
-  headerButtons();
-  if (path !== "/chat") {
-    ws.send(JSON.stringify({ type: "online_users" }));
-    CategoriesListener(path);
-  } else {
-    ws.send(JSON.stringify({ type: "get_chat_users" }));
-  }
-}
-async function populateProfile() {
-  try {
-    const [user, log] = await isLogged();
-    if (!log || !user) {
-      throw new Error("User not logged in");
+    ProfileDropdown();
+    populateProfile();
+    headerButtons();
+
+    if (path === "/chat") {
+        ws.send(JSON.stringify({ type: "get_chat_users" }));
+    } else {
+        ws.send(JSON.stringify({ type: "online_users" }));
+        CategoriesListener(path);  
     }
-    const logo = document.getElementById("user-initials");
-    const Dropdownlogo = document.getElementById("user-initials-dropdown");
-    const username = document.getElementById("user-name-dropdown");
-    if (username) username.textContent = user;
-    if (logo) logo.textContent = user.charAt(0).toUpperCase();
-    if (Dropdownlogo) Dropdownlogo.textContent = user.charAt(0).toUpperCase();
-  } catch (e) {
-    Popup.show("Something went wrong");
-  }
 }
+
+async function populateProfile() {
+    try {
+        const [user, log] = await isLogged();
+
+        if (!log || !user) {
+            throw new Error("User not logged in");
+        }
+
+        const logo = document.getElementById("user-initials");
+        const Dropdownlogo = document.getElementById("user-initials-dropdown");
+        const username = document.getElementById("user-name-dropdown");
+
+        if (username) username.textContent = user;
+        if (logo) logo.textContent = user.charAt(0).toUpperCase();
+        if (Dropdownlogo)
+            Dropdownlogo.textContent = user.charAt(0).toUpperCase();
+    } catch (e) {
+        Popup.show("Something went wrong");
+    }
+}
+
+
 export function OnlineUsers(users) {
   if (!ws) return;
   const usersContainer = document.querySelector(".online-users");
+    if (!usersContainer) return; 
 
-  usersContainer.innerHTML = "<h2>Users</h2>";
-  if (!users || users.length === 0) {
-    const noUsers = document.createElement("p");
-    noUsers.style.marginTop = "20px";
-    noUsers.textContent = "No online users";
-    usersContainer.appendChild(noUsers);
-    return;
-  }
+    usersContainer.innerHTML = "<h2>Users</h2>";
 
-  const listUsers = document.createElement("div");
-  listUsers.className = "list-users";
+    if (!users || users.length === 0) {
+        const noUsers = document.createElement("p");
+        noUsers.style.marginTop = "20px";
+        noUsers.textContent = "No online users";
+        usersContainer.appendChild(noUsers);
+        return;
+    }
 
-  users.forEach((user) => {
-    const userItem = document.createElement("div");
-    userItem.className = "user-item";
-    userItem.dataset.username = user;
-    userItem.addEventListener("click", () => {
-      router(`/chat?username=${user}`);
+    const listUsers = document.createElement("div");
+    listUsers.className = "list-users";
+
+    users.forEach((user) => {
+        const userItem = document.createElement("div");
+        userItem.className = "user-item";
+        userItem.dataset.username = user;
+        userItem.addEventListener("click", () => {
+            router(`/chat?username=${user}`);
+        });
+
+        const avatar = user.charAt(0).toUpperCase();
+        userItem.innerHTML = `
+            <div class="user-item-avatar">${avatar}</div>
+            <span class="user-item-name">${user}</span>
+        `;
+        listUsers.appendChild(userItem);
     });
 
-    const avatar = user.charAt(0).toUpperCase();
-
-    userItem.innerHTML = `
-      <div class="user-item-avatar">${avatar}</div>
-      <span class="user-item-name">${user}</span>
-    `;
-    listUsers.appendChild(userItem);
-  });
-
-  usersContainer.appendChild(listUsers);
+    usersContainer.appendChild(listUsers);
 }
 
 export function ChatUsers(chats) {
@@ -82,26 +91,34 @@ export function ChatUsers(chats) {
     return;
   }
 
-  const listUsers = document.createElement("div");
-  listUsers.className = "list-users";
+    if (!chats || chats.length === 0) {
+        const noChats = document.createElement("p");
+        noChats.style.marginTop = "20px";
+        noChats.textContent = "No conversations yet";
+        usersContainer.appendChild(noChats);
+        return;
+    }
 
-  chats.forEach(({ target }) => {
-    const userItem = document.createElement("div");
-    userItem.className = "user-item";
-    userItem.dataset.username = target;
-    userItem.addEventListener("click", () => {
-      router(`/chat?username=${target}`);
+    const listUsers = document.createElement("div");
+    listUsers.className = "list-users";
+
+    chats.forEach(({ target }) => {
+        const userItem = document.createElement("div");
+        userItem.className = "user-item";
+        userItem.dataset.username = target;
+        userItem.addEventListener("click", () => {
+            router(`/chat?username=${target}`);
+        });
+
+        const avatar = target.charAt(0).toUpperCase();
+        userItem.innerHTML = `
+            <div class="user-item-avatar">${avatar}</div>
+            <div class="user-item-info">
+                <span class="user-item-name">${target}</span>
+            </div>
+        `;
+        listUsers.appendChild(userItem);
     });
 
-    const avatar = target.charAt(0).toUpperCase();
-    userItem.innerHTML = `
-      <div class="user-item-avatar">${avatar}</div>
-      <div class="user-item-info">
-        <span class="user-item-name">${target}</span>
-      </div>
-    `;
-    listUsers.appendChild(userItem);
-  });
-
-  usersContainer.appendChild(listUsers);
+    usersContainer.appendChild(listUsers);
 }

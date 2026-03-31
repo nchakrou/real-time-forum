@@ -1,0 +1,39 @@
+[33m209f9bc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: reset: moving to HEAD
+[33m209f9bc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{1}: reset: moving to 209f9bcd877f98c5250bc2ef4476104a7dcde1f2
+[33m9df2dfa[m HEAD@{2}: reset: moving to HEAD
+[33m9df2dfa[m HEAD@{3}: reset: moving to HEAD
+[33m9df2dfa[m HEAD@{4}: reset: moving to HEAD
+[33m9df2dfa[m HEAD@{5}: reset: moving to HEAD
+[33m9df2dfa[m HEAD@{6}: commit: notification instagram
+[33mccaa5a1[m HEAD@{7}: commit: handle likes dislike style and comments number realtime
+[33m1836156[m HEAD@{8}: pull origin main: Fast-forward
+[33m1512a26[m HEAD@{9}: commit: handle comments style and chat scroll
+[33mf35468d[m HEAD@{10}: pull origin main: Fast-forward
+[33m06b425f[m HEAD@{11}: commit: handle errors
+[33mac3dc5b[m HEAD@{12}: commit: handle notification for msg
+[33m2b0f71a[m HEAD@{13}: pull origin main: Fast-forward
+[33m04940ee[m HEAD@{14}: pull origin main: Fast-forward
+[33mf7463b8[m HEAD@{15}: commit: handle notification but for onlylikes
+[33ma9fc0e7[m HEAD@{16}: commit: handle likedpost
+[33m3e94537[m HEAD@{17}: commit: nothing
+[33mccdc424[m HEAD@{18}: commit: likedpost
+[33m9a76689[m HEAD@{19}: pull origin main: Fast-forward
+[33maf6688b[m HEAD@{20}: pull origin main: Fast-forward
+[33m33e4dd1[m HEAD@{21}: commit: handle comments loading comments
+[33m35961e9[m HEAD@{22}: pull origin main: Fast-forward
+[33m4c3222b[m HEAD@{23}: commit: add comments listeners get response json from backend but there is an err ill hadnle it
+[33m4293d4e[m HEAD@{24}: pull origin main: Fast-forward
+[33m386009e[m HEAD@{25}: commit: handle likes a
+[33m8925b1f[m HEAD@{26}: pull origin main: Fast-forward
+[33m0bc51cc[m HEAD@{27}: reset: moving to HEAD
+[33m0bc51cc[m HEAD@{28}: pull origin main: Fast-forward
+[33mf3df068[m HEAD@{29}: commit: handle my err
+[33me38f352[m HEAD@{30}: commit: handle register login with js
+[33mff38ed4[m HEAD@{31}: reset: moving to HEAD
+[33mff38ed4[m HEAD@{32}: pull origin main: Fast-forward
+[33m6d4aea4[m HEAD@{33}: reset: moving to HEAD
+[33m6d4aea4[m HEAD@{34}: reset: moving to HEAD
+[33m6d4aea4[m HEAD@{35}: reset: moving to HEAD
+[33m6d4aea4[m HEAD@{36}: pull origin main: Fast-forward
+[33m2827dcc[m HEAD@{37}: commit: add database for login and sessions
+[33m9d73ce7[m HEAD@{38}: clone: from https://github.com/nchakrou/real-time-forum.git

@@ -2,10 +2,43 @@ import { router } from "../Router.js";
 
 const toastQueue = [];
 let isToastVisible = false;
+let currentOpenChat = null;
+const unreadChats = new Set();
 
+export function setCurrentOpenChat(username) {
+    currentOpenChat = username;
+    if (username) {
+        markChatAsRead(username);
+    }
+}
+
+export function clearCurrentOpenChat() {
+    currentOpenChat = null;
+}
+
+function markChatAsRead(username) {
+    unreadChats.delete(username);
+    removeDotFromSidebar(username);
+    removeStoredNotification(username);
+}
+
+function markChatAsUnread(username) {
+    unreadChats.add(username);
+    addDotToSidebar(username);
+}
 
 export function showNotification(data, showToast = true) {
+    if (currentOpenChat === data.from) {
+        return;
+    }
+
+    markChatAsUnread(data.from);
+    if (isOnChatPage()) {
+        return;
+    }
     storeNotification(data, showToast);
+
+
     if (showToast) enqueueToast(data);
 }
 
@@ -15,11 +48,42 @@ export function removeStoredNotification(username) {
 
     const notif = findNotifByUser(bar, username);
     if (notif) {
-        updateBadge(-parseInt(notif.dataset.count));
+        const badgedCount = parseInt(notif.dataset.badgedCount || "0");
+        updateBadge(-badgedCount);
         notif.remove();
     }
 }
 
+function addDotToSidebar(username) {
+    const userElement = document.querySelector(
+        `[data-username="${username}"]`
+    );
+    if (!userElement) return;
+    if (userElement.querySelector(".unread-dot")) return;
+    userElement.style.position = "relative";
+    const dot = document.createElement("span");
+    dot.classList.add("unread-dot");
+    userElement.appendChild(dot);
+}
+
+function removeDotFromSidebar(username) {
+    const userElement = document.querySelector(
+        `[data-username="${username}"]`
+    );
+    if (!userElement) return;
+    const dot = userElement.querySelector(".unread-dot");
+    if (dot) dot.remove();
+}
+
+export function restoreUnreadDots() {
+    unreadChats.forEach((username) => {
+        addDotToSidebar(username);
+    });
+}
+
+function isOnChatPage() {
+    return window.location.pathname.startsWith("/chat");
+}
 
 function enqueueToast(data) {
     const existing = toastQueue.find((item) => item.from === data.from);
@@ -27,17 +91,15 @@ function enqueueToast(data) {
         existing.message = data.message;
         return;
     }
-
     toastQueue.push(data);
     if (!isToastVisible) showNextToast();
 }
 
 function showNextToast() {
     if (toastQueue.length === 0) {
-        isToastVisible = true
+        isToastVisible = false;
         return;
     }
-
     isToastVisible = true;
     const data = toastQueue.shift();
     displayToast(data, () => showNextToast());
@@ -50,10 +112,8 @@ function displayToast(data, callback) {
         container.id = "toast-container";
         document.body.appendChild(container);
     }
-
     const toast = document.createElement("div");
     toast.classList.add("toast-notification");
-
     toast.innerHTML = `
         <div class="toast-avatar">${getInitial(data.from)}</div>
         <div class="toast-content">
@@ -62,47 +122,37 @@ function displayToast(data, callback) {
         </div>
         <div class="toast-close">✕</div>
     `;
-
     container.appendChild(toast);
     requestAnimationFrame(() => toast.classList.add("toast-enter"));
-
     let dismissed = false;
     let autoTimer = null;
-
     const dismiss = (navigate = false) => {
         if (dismissed) return;
         dismissed = true;
-
         if (autoTimer) clearTimeout(autoTimer);
-
         if (navigate) {
             toast.remove();
             router(`/chat?username=${data.from}`);
             callback();
             return;
         }
-
         toast.classList.add("toast-exit");
         setTimeout(() => {
             toast.remove();
             callback();
         }, 300);
     };
-
     toast.addEventListener("click", (e) => {
         if (!e.target.classList.contains("toast-close")) {
             dismiss(true);
         }
     });
-
     toast.querySelector(".toast-close").addEventListener("click", (e) => {
         e.stopPropagation();
         dismiss(false);
     });
-
     autoTimer = setTimeout(() => dismiss(false), 5000);
 }
-
 
 export function storeNotification(data, showToast = true) {
     const bar = document.getElementById("notification-list");
@@ -114,7 +164,8 @@ export function storeNotification(data, showToast = true) {
         notif = document.createElement("div");
         notif.classList.add("stored-notification");
         notif.dataset.user = data.from;
-        notif.dataset.count = "0"; 
+        notif.dataset.count = "0";
+        notif.dataset.badgedCount = "0";
         notif.dataset.lastMessage = data.message;
 
         notif.innerHTML = `
@@ -146,10 +197,7 @@ export function storeNotification(data, showToast = true) {
         data.message,
         40
     );
-
-   
     bar.prepend(notif);
-
 
     if (showToast) {
         const badgedCount = parseInt(notif.dataset.badgedCount || "0") + 1;
@@ -157,8 +205,6 @@ export function storeNotification(data, showToast = true) {
         updateBadge(1);
     }
 }
-
-
 
 function findNotifByUser(container, username) {
     return (
@@ -170,9 +216,7 @@ function findNotifByUser(container, username) {
 function updateBadge(change) {
     const badge = document.getElementById("notification-badge");
     if (!badge) return;
-
     const current = Math.max(0, parseInt(badge.textContent || "0") + change);
-
     if (current <= 0) {
         badge.style.display = "none";
         badge.textContent = "0";
