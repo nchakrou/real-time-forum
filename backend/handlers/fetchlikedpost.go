@@ -17,6 +17,7 @@ type Pot struct {
 	CreatedAt time.Time `json:"created_at"`
 	Likes     int       `json:"likes"`
 	Dislikes  int       `json:"dislikes"`
+	Comments  int       `json:"comments"`
 }
 
 func HandleLikedPosts(db *sql.DB) http.HandlerFunc {
@@ -33,7 +34,7 @@ func HandleLikedPosts(db *sql.DB) http.HandlerFunc {
 		}
 
 		query := `
-            SELECT p.id, p.title, p.content, p.user_id, u.nickname, p.created_at, p.likes, p.dislikes
+            SELECT p.id, p.title, p.content, p.user_id, u.nickname, p.created_at, p.likes, p.dislikes, p.comments
             FROM posts p
             INNER JOIN likes l ON l.post_id = p.id
             LEFT JOIN users u ON u.id = p.user_id
@@ -47,14 +48,13 @@ func HandleLikedPosts(db *sql.DB) http.HandlerFunc {
 		}
 		defer rows.Close()
 
-		// ✅ إرجع مصفوفة فاضية بدل null
 		posts := make([]Pot, 0)
 
 		for rows.Next() {
 			var p Pot
 			if err := rows.Scan(
 				&p.ID, &p.Title, &p.Content, &p.UserID,
-				&p.Username, &p.CreatedAt, &p.Likes, &p.Dislikes,
+				&p.Username, &p.CreatedAt, &p.Likes, &p.Dislikes,&p.Comments,
 			); err != nil {
 				backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong")
 				return

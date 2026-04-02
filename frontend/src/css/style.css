@@ -712,8 +712,27 @@ li.active:hover {
     flex-direction: column;
     gap: 10px;
     margin-top: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
 }
-
+.comments::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .comments::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+  
+  .comments::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+  }
+  
+  .comments::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
 .comment {
     padding: 10px 12px;
     background: var(--bg-secondary);
