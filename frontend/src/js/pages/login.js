@@ -3,7 +3,7 @@ import { init } from "../main.js";
 const loginPage = `
 <div class ="app-auth">
 <div class="login">
-<img src="/src/assets/logo.png" class = "logo">
+<img src="/frontend/src/assets/logo.png" class = "logo">
   <h2>Login</h2>
   <p>Welcome back, please enter your details to login</p>
   <form id="login-form">

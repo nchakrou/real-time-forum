@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
+
 	"forum/backend"
 	"forum/backend/handlers"
 	"forum/backend/handlers/Websocket"
 	"forum/backend/handlers/auth"
-	"log"
-	"net/http"
 
 	"github.com/gorilla/websocket"
 )
@@ -23,7 +24,6 @@ type login struct {
 }
 
 func main() {
-
 	db, err := backend.InitDB("forum.db")
 	hub := &Websocket.Hub{
 		Clients: make(map[int][]*websocket.Conn),
@@ -34,14 +34,16 @@ func main() {
 	defer db.Close()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("ejrtnsdfsefnsdkpo")
+		fmt.Println("the url", r.URL)
 		http.ServeFile(w, r, "frontend/index.html")
 	})
 
-	http.HandleFunc("/src/", func(w http.ResponseWriter, r *http.Request) {
-
-		http.ServeFile(w, r, "frontend/"+r.URL.Path)
+	http.HandleFunc("/frontend/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("the url hhhh", r.URL.Path)
+		fmt.Println("fthe src")
+		http.ServeFile(w, r, r.URL.Path[1:])
 	})
-
 	http.HandleFunc("/api/login", auth.LoginHandler(db))
 	http.HandleFunc("/api/register", auth.RegisterHandler(db))
 	http.HandleFunc("/api/islogged", auth.IsLogged(db))
@@ -61,5 +63,4 @@ func main() {
 
 	fmt.Println("Server started at http://localhost:8081")
 	log.Fatal(http.ListenAndServe(":8081", nil))
-
 }

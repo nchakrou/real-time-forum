@@ -90,17 +90,17 @@ export function createpostsContainer(posts, isFirstLoad = false) {
       
         <div class="post-buttons">
           <button type="submit" class="like_button">
-            <img src="../src/assets/like.svg">
+            <img src="/frontend/src/assets/like.svg">
             <span>${post.likes}</span>
           </button>
       
           <button type="submit" class="dislike_button">
-            <img src="../src/assets/dislike.svg">
+            <img src="/frontend/src/assets/dislike.svg">
             <span>${post.dislikes}</span>
           </button>
       
           <button type="submit" class="comment_button">
-            <img src="../src/assets/comment.svg">
+            <img src="/frontend/src/assets/comment.svg">
             <span>${post.comments}</span>
           </button>
         </div>
@@ -117,13 +117,14 @@ export function createpostsContainer(posts, isFirstLoad = false) {
   <div class="comments-section">
     <input type="text" class="comment-input" placeholder="Add a comment...">
     <button type="submit" class="Submit_comment">
-      <img src="../src/assets/send.svg">
+      <img src="/frontend/src/assets/send.svg">
     </button>
   </div>
 
 </div>
         `
       );
+      
       postsContainer.appendChild(postElement);
       const likeBtn = postElement.querySelector(".like_button");
       const dislikeBtn = postElement.querySelector(".dislike_button");
@@ -204,8 +205,6 @@ if (data.status === "ok") {
   await loadComments(post);
   commentsContainer.scrollTop = commentsContainer.scrollHeight;
 }
-}
-    
   } catch (err) {
     console.error("Error adding comment:", err);
   }
@@ -256,7 +255,12 @@ async function loadComments(post) {
     const res = await fetch(`/api/comments?post_id=${postId}&offset=${offset}&limit=10`);
     if (!res.ok) throw new Error("Failed to fetch comments");
     const comments = await res.json();
-
+if (!comments || comments.length === 0) {
+      if (offset === 0) {
+        commentsContainer.innerHTML = "<p>No comments yet</p>";
+      }
+      return;
+    }
     comments.forEach((c) => {
       const newComment = document.createElement("div");
       newComment.classList.add("comment");

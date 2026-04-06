@@ -11,6 +11,8 @@ export const routes = {
 };
 
 export async function init(path) {
+  
+  const pathname = path || window.location.pathname;
   if (!path) {
     path = window.location.pathname + window.location.search;
   }
@@ -23,15 +25,15 @@ export async function init(path) {
       ErrorPage("connection error", "500");
       return;
     }
-    if (path === "/register" || path === "/login") {
+    if (pathname === "/register" || pathname === "/login") {
       router("/");
     } else {
       router(path);
     }
   } else {
-    if (path === "/register" || path === "/login") {
+    if (pathname === "/register" || pathname === "/login") {
       router(path);
-    } else if (!routes[path]) {
+    } else if (!routes[pathname]) {
       ErrorPage("404 Not Found", "404");
     } else {
       router("/login");

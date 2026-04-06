@@ -30,7 +30,7 @@ ${Header}
             </div>
             <div id="mobile-back-btn" class="mobile-back-btn">
                 <button class="chat-action-btn" title="Information">
-                    <img src="src/assets/plus.svg" style="transform: rotate(45deg);">
+                    <img src="/frontend/src/assets/plus.svg" style="transform: rotate(45deg);">
                 </button>
             </div>
         </div>
@@ -38,7 +38,7 @@ ${Header}
         <div class="chat-viewport" id="chat-viewport">
             <div class="empty-chat-state">
                 <div class="empty-chat-icon">
-                    <img src="src/assets/chat.svg" alt="Chat Icon">
+                    <img src="/frontend/src/assets/chat.svg" alt="Chat Icon">
                 </div>
                 <h3>Your Conversations</h3>
                 <p>Interact with other users in real-time. Select a contact from the sidebar to start chatting.</p>
@@ -52,7 +52,7 @@ ${Header}
                     <textarea id="chat-message-input" placeholder="Write something..." rows="1"></textarea>
                 </div>
                 <button id="chat-send-btn" class="chat-send-btn" title="Send message">
-                    <img src="src/assets/send.svg" alt="Send">
+                    <img src="/frontend/src/assets/send.svg" alt="Send">
                 </button>
             </div>
         </div>

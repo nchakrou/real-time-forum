@@ -3,7 +3,7 @@ import { init } from "../main.js";
 const registerPage = `
   <div class ="app-auth">
 <div class="register">
-<img src="/src/assets/logo.png" class = "logo">
+<img src="/frontend/src/assets/logo.png" class = "logo">
   <h2>Create Account</h2>
   
   <p>Sing Up to get started</p>

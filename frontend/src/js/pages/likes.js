@@ -60,7 +60,7 @@ export async function likedPosts() {
                 <h2>Liked Posts</h2>
                 <div id="posts-container"></div>
             </div>
-            <div class="users">
+            <div class="online-users">
                 <h2>Users</h2>
             </div>
         </div>

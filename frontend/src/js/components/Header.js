@@ -7,17 +7,17 @@ export const Header = `
         <nav>
         <div class="header-buttons" id = "header-buttons">
             <button id="home" title="Home" class="nav-btn">
-                <img src="/src/assets/home.svg">
+                <img src="/frontend/src/assets/home.svg">
                 <span class="nav-text">Home</span>
             </button>
             <button id="createpost" title="Create Post" class="nav-btn">
-                <img src="src/assets/plus.svg">
+                <img src="/frontend/src/assets/plus.svg">
                 <span class="nav-text">Create</span>
             </button>
             
            
             <button id="chat" title="Chat" class="nav-btn">
-                <img src="src/assets/chat.svg">
+                <img src="/frontend/src/assets/chat.svg">
                 <span class="nav-text">Chat</span>
             </button>
        
@@ -26,7 +26,7 @@ export const Header = `
         <div class="header-actions">
             <div class="notification-wrapper">
                 <button id="notification-btn" class="notification-btn" title="Notifications">
-                    <img src="src/assets/bell.svg" alt="Notifications">
+                    <img src="/frontend/src/assets/bell.svg" alt="Notifications">
                     <span id="notification-badge" class="notification-badge hidden">0</span>
                 </button>
                 
@@ -65,16 +65,16 @@ export const Header = `
                   
                     <div class="user-dropdown-menu">
                         <button id="myPosts" class="dropdown-menu-item">
-                            <img src="src/assets/myposts.svg" alt="My Posts">
+                            <img src="/frontend/src/assets/myposts.svg" alt="My Posts">
                             <span>My Posts</span>
                         </button>
                         <button id="likedPosts" class="dropdown-menu-item">
-                            <img src="src/assets/heart.svg" alt="Liked Posts">
+                            <img src="/frontend/src/assets/heart.svg" alt="Liked Posts">
                             <span>Liked Posts</span>
                         </button>
                     <div class= "divider"></div>
                         <button id="logout" class="dropdown-menu-item logout-item">
-                            <img src="src/assets/log-out.svg" alt="Logout">
+                            <img src="/frontend/src/assets/log-out.svg" alt="Logout">
                             <span>Logout</span>
                         </button>
                          

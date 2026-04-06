@@ -15,7 +15,7 @@ export function pagesInit(path = "/") {
         ws.send(JSON.stringify({ type: "get_chat_users" }));
     } else {
         ws.send(JSON.stringify({ type: "online_users" }));
-        CategoriesListener(path);  
+        CategoriesListener("/");  
     }
 }
 
