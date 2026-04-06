@@ -44,7 +44,10 @@ function handleLogin() {
         body: JSON.stringify({ username, password }),
       };
       try {
-        const response = await fetch("/api/login", request);
+        const response = await fetch("/api/login", {
+          ...request,
+          credentials: "include", 
+        });
 
         if (response.ok) {
           init();

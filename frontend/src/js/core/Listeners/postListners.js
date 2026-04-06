@@ -202,6 +202,8 @@ if (data.status === "ok") {
   loadMoreBtn.classList.add("hidden");
 
   await loadComments(post);
+  commentsContainer.scrollTop = commentsContainer.scrollHeight;
+}
 }
     
   } catch (err) {
@@ -280,7 +282,12 @@ async function loadComments(post) {
 async function loadMoreComments(e) {
 
   const post = e.target.closest(".post");
+  const commentsContainer = post.querySelector(".comments");
+  const previousScrollHeight = commentsContainer.scrollHeight;
 
   await loadComments(post);
+
+  const newScrollHeight = commentsContainer.scrollHeight;
+  commentsContainer.scrollTop += newScrollHeight - previousScrollHeight;
 
 }
