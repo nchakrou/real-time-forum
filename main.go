@@ -47,9 +47,7 @@ func main() {
 	http.HandleFunc("/api/login", auth.LoginHandler(db))
 	http.HandleFunc("/api/register", auth.RegisterHandler(db))
 	http.HandleFunc("/api/islogged", auth.IsLogged(db))
-	http.HandleFunc("/api/logout", func(w http.ResponseWriter, r *http.Request) {
-		http.SetCookie(w, &http.Cookie{Name: "session_token", Value: "", MaxAge: -1, Path: "/"})
-	})
+	http.HandleFunc("/api/logout", auth.Logout(db))
 	http.HandleFunc("/api/liked-posts", backend.Middleware(db, handlers.HandleLikedPosts(db)))
 	http.HandleFunc("/api/like", backend.Middleware(db, handlers.HandleLike(db, "post")))
 	http.HandleFunc("/api/like-comment", backend.Middleware(db, handlers.HandleLike(db, "comment")))

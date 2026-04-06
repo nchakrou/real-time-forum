@@ -3,12 +3,13 @@ package auth
 import (
 	"database/sql"
 	"encoding/json"
-	"forum/backend"
 	"log"
 	"net/http"
 	"regexp"
 	"strconv"
 	"time"
+
+	"forum/backend"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -97,8 +98,6 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 			Expires:  exp,
 			Path:     "/",
 			HttpOnly: true,
-			Secure:   true,
-			SameSite: http.SameSiteLaxMode,
 		})
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)

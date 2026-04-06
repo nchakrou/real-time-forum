@@ -1,7 +1,7 @@
 import { router } from "../Router.js";
-import { fetchPosts } from "./postListners.js";
 import { init } from "../../main.js";
 import { ws } from "../WebSocket/initWs.js";
+import { Popup } from "../../components/Popup.js";
 
 export const headerButtonsRoutes = {
   home: () => router("/"),
@@ -10,11 +10,22 @@ export const headerButtonsRoutes = {
   likedPosts: () => router("/likedPosts"),
   chat: () => router("/chat"),
   logout: async () => {
-    await fetch("/api/logout", {
-      method: "GET",
-    });
-    ws.close();
-    init("/login");
+    try {
+      const response = await fetch("/api/logout", {
+        method: "POST",
+      });
+      if (!response.ok) {
+        Popup.show("Logout failed. Please try again.");
+        return;
+      }
+    } catch (err) {
+      console.error("Error during logout:", err);
+      Popup.show("Connection error. Please try again.");
+      return;
+    } finally {
+      ws.close();
+      init("/login");
+    }
   },
 };
 

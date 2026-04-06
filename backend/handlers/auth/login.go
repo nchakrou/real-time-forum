@@ -76,8 +76,6 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 			Expires:  exp,
 			Path:     "/",
 			HttpOnly: true,
-			Secure:   true,
-			SameSite: http.SameSiteLaxMode,
 		})
 
 		w.Header().Set("Content-Type", "application/json")
@@ -109,4 +107,35 @@ func generateRandomToken() string {
 		panic(err)
 	}
 	return hex.EncodeToString(b)
+}
+
+func Logout(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID, err := backend.GetUserIDFromRequest(db, r)
+		if err != nil || userID.ID == 0 {
+			w.WriteHeader(http.StatusUnauthorized)
+			log.Println("Unauthorized logout attempt:", err)
+			return
+		}
+
+		_, err = db.Exec("DELETE FROM sessions WHERE user_id = ?", userID.ID)
+		if err != nil {
+			log.Println("Error deleting session during logout:", err)
+			backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again.")
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_token",
+			Value:    "",
+			MaxAge:   -1,
+			Path:     "/",
+			HttpOnly: true,
+		})
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"status": "ok",
+		})
+	}
 }
