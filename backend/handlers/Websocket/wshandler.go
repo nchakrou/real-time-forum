@@ -57,7 +57,23 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		defer conn.Close()
+		defer func() {
+			conn.Close()
+			hub.mu.Lock()
+			conns := hub.Clients[userid]
+			for i, c := range conns {
+				if c == conn {
+					hub.Clients[userid] = append(conns[:i], conns[i+1:]...)
+					break
+				}
+			}
+			hub.mu.Unlock()
+			if len(hub.Clients[userid]) == 0 {
+				delete(hub.Clients, userid)
+				hub.Leave(db, user)
+			}
+			log.Printf("User %d disconnected", userid)
+		}()
 		hub.mu.Lock()
 		hub.Clients[userid] = append(hub.Clients[userid], conn)
 		hub.mu.Unlock()
@@ -93,4 +109,21 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 			}
 		}
 	}
+}
+
+func (h *Hub) Leave(db *sql.DB, user backend.User) {
+	h.mu.Lock()
+	for _, conns := range h.Clients {
+		for _, conn := range conns {
+			log.Printf("Sending offline message to user %d", user.ID)
+			err := conn.WriteJSON(response{
+				Type: "user_offline",
+				From: user.Nickname,
+			})
+			if err != nil {
+				log.Println("Error sending message to user:", err)
+			}
+		}
+	}
+	h.mu.Unlock()
 }

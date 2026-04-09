@@ -8,6 +8,7 @@ import {
 } from "../WebSocket/shownotification.js";
 import { Popup } from "../../components/Popup.js";
 import { updateUserList } from "../../utils/chatUtils.js";
+import { router } from "../Router.js";
 
 export let ws;
 export let currentChatUser = null;
@@ -40,6 +41,7 @@ export function OpenWS() {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log("Message from server:", data);
+console.log(data.type);
 
       switch (data.type) {
         case "online_users":
@@ -67,6 +69,19 @@ export function OpenWS() {
         case "typing":
           handleTypingStatus(data);
           break;
+        case "user_offline":
+                    
+            if (window.location.pathname !== "/chat") {
+              console.log(data.from);
+              
+              const userItem = document.querySelector(
+                `.user-item[data-username="${data.from}"]`,
+              );
+              if (userItem) {
+                userItem.remove();
+              }
+            }
+            break;
       }
     };
 
