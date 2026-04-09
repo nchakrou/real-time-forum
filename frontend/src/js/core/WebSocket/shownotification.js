@@ -5,6 +5,10 @@ let isToastVisible = false;
 let currentOpenChat = null;
 const unreadChats = new Set();
 
+
+const notificationStore = new Map();
+let totalBadgeCount = 0;
+
 export function setCurrentOpenChat(username) {
     currentOpenChat = username;
     if (username) {
@@ -28,36 +32,35 @@ function markChatAsUnread(username) {
 }
 
 export function showNotification(data, showToast = true) {
-    if (currentOpenChat === data.from) {
-        return;
-    }
+    if (currentOpenChat === data.from) return;
 
     markChatAsUnread(data.from);
-    if (isOnChatPage()) {
-        return;
-    }
     storeNotification(data, showToast);
 
+    if (isOnChatPage()) return;
 
     if (showToast) enqueueToast(data);
 }
 
-export function removeStoredNotification(username) {
-    const bar = document.getElementById("notification-list");
-    if (!bar) return;
 
-    const notif = findNotifByUser(bar, username);
-    if (notif) {
-        const badgedCount = parseInt(notif.dataset.badgedCount || "0");
-        updateBadge(-badgedCount);
-        notif.remove();
+export function removeStoredNotification(username) {
+    const stored = notificationStore.get(username);
+    if (stored) {
+        totalBadgeCount = Math.max(0, totalBadgeCount - stored.badgedCount);
+        notificationStore.delete(username);
     }
+
+    const bar = document.getElementById("notification-list");
+    if (bar) {
+        const notif = findNotifByUser(bar, username);
+        if (notif) notif.remove();
+    }
+
+    syncBadgeDOM();
 }
 
 function addDotToSidebar(username) {
-    const userElement = document.querySelector(
-        `[data-username="${username}"]`
-    );
+    const userElement = document.querySelector(`[data-username="${username}"]`);
     if (!userElement) return;
     if (userElement.querySelector(".unread-dot")) return;
     userElement.style.position = "relative";
@@ -67,18 +70,14 @@ function addDotToSidebar(username) {
 }
 
 function removeDotFromSidebar(username) {
-    const userElement = document.querySelector(
-        `[data-username="${username}"]`
-    );
+    const userElement = document.querySelector(`[data-username="${username}"]`);
     if (!userElement) return;
     const dot = userElement.querySelector(".unread-dot");
     if (dot) dot.remove();
 }
 
 export function restoreUnreadDots() {
-    unreadChats.forEach((username) => {
-        addDotToSidebar(username);
-    });
+    unreadChats.forEach((username) => addDotToSidebar(username));
 }
 
 function isOnChatPage() {
@@ -137,15 +136,10 @@ function displayToast(data, callback) {
             return;
         }
         toast.classList.add("toast-exit");
-        setTimeout(() => {
-            toast.remove();
-            callback();
-        }, 300);
+        setTimeout(() => { toast.remove(); callback(); }, 300);
     };
     toast.addEventListener("click", (e) => {
-        if (!e.target.classList.contains("toast-close")) {
-            dismiss(true);
-        }
+        if (!e.target.classList.contains("toast-close")) dismiss(true);
     });
     toast.querySelector(".toast-close").addEventListener("click", (e) => {
         e.stopPropagation();
@@ -154,76 +148,88 @@ function displayToast(data, callback) {
     autoTimer = setTimeout(() => dismiss(false), 5000);
 }
 
+// ✅ عدلت هذه - تخزن في memory أولاً ثم الـ DOM
 export function storeNotification(data, showToast = true) {
+    // خزن في الـ memory
+    const existing = notificationStore.get(data.from);
+    if (existing) {
+        existing.count += 1;
+        existing.message = data.message;
+        if (showToast) {
+            existing.badgedCount += 1;
+            totalBadgeCount += 1;
+        }
+    } else {
+        notificationStore.set(data.from, {
+            from: data.from,
+            message: data.message,
+            count: 1,
+            badgedCount: showToast ? 1 : 0,
+        });
+        if (showToast) totalBadgeCount += 1;
+    }
+    const bar = document.getElementById("notification-list");
+    if (bar) {
+        let notif = findNotifByUser(bar, data.from);
+        const stored = notificationStore.get(data.from);
+        if (!notif) {
+            notif = createNotifElement(stored);
+            bar.prepend(notif);
+        } else {
+            notif.querySelector(".stored-notif-badge").textContent = stored.count;
+            notif.querySelector(".stored-notif-preview").textContent = truncateUTF8(stored.message, 40);
+            bar.prepend(notif);
+        }
+    }
+
+    syncBadgeDOM();
+}
+export function renderStoredNotifications() {
     const bar = document.getElementById("notification-list");
     if (!bar) return;
+    bar.innerHTML = "";
+    [...notificationStore.values()].forEach((stored) => {
+        bar.appendChild(createNotifElement(stored));
+    });
+    syncBadgeDOM();
+}
 
-    let notif = findNotifByUser(bar, data.from);
-
-    if (!notif) {
-        notif = document.createElement("div");
-        notif.classList.add("stored-notification");
-        notif.dataset.user = data.from;
-        notif.dataset.count = "0";
-        notif.dataset.badgedCount = "0";
-        notif.dataset.lastMessage = data.message;
-
-        notif.innerHTML = `
-            <div class="stored-notif-avatar">${getInitial(data.from)}</div>
-            <div class="stored-notif-content">
-                <div class="stored-notif-header">
-                    <span class="stored-notif-name">${escapeHTML(data.from)}</span>
-                    <span class="stored-notif-badge">0</span>
-                </div>
-                <div class="stored-notif-preview">${truncateUTF8(data.message, 40)}</div>
+function createNotifElement(stored) {
+    const notif = document.createElement("div");
+    notif.classList.add("stored-notification");
+    notif.dataset.user = stored.from;
+    notif.innerHTML = `
+        <div class="stored-notif-avatar">${getInitial(stored.from)}</div>
+        <div class="stored-notif-content">
+            <div class="stored-notif-header">
+                <span class="stored-notif-name">${escapeHTML(stored.from)}</span>
+                <span class="stored-notif-badge">${stored.count}</span>
             </div>
-        `;
-
-        notif.addEventListener("click", () => {
-            const badgedCount = parseInt(notif.dataset.badgedCount || "0");
-            updateBadge(-badgedCount);
-            notif.remove();
-            router(`/chat?username=${data.from}`);
-        });
-
-        bar.prepend(notif);
-    }
-
-    const count = parseInt(notif.dataset.count) + 1;
-    notif.dataset.count = count.toString();
-    notif.dataset.lastMessage = data.message;
-    notif.querySelector(".stored-notif-badge").textContent = count;
-    notif.querySelector(".stored-notif-preview").textContent = truncateUTF8(
-        data.message,
-        40
-    );
-    bar.prepend(notif);
-
-    if (showToast) {
-        const badgedCount = parseInt(notif.dataset.badgedCount || "0") + 1;
-        notif.dataset.badgedCount = badgedCount.toString();
-        updateBadge(1);
-    }
+            <div class="stored-notif-preview">${truncateUTF8(stored.message, 40)}</div>
+        </div>
+    `;
+    notif.addEventListener("click", () => {
+        removeStoredNotification(stored.from);
+        router(`/chat?username=${stored.from}`);
+    });
+    return notif;
 }
 
-function findNotifByUser(container, username) {
-    return (
-        [...container.children].find((el) => el.dataset.user === username) ||
-        null
-    );
-}
-
-function updateBadge(change) {
+function syncBadgeDOM() {
     const badge = document.getElementById("notification-badge");
     if (!badge) return;
-    const current = Math.max(0, parseInt(badge.textContent || "0") + change);
-    if (current <= 0) {
+    if (totalBadgeCount <= 0) {
+        totalBadgeCount = 0;
         badge.style.display = "none";
         badge.textContent = "0";
     } else {
         badge.style.display = "flex";
-        badge.textContent = current.toString();
+        badge.textContent = totalBadgeCount.toString();
     }
+}
+
+function findNotifByUser(container, username) {
+    return [...container.children].find((el) => el.dataset.user === username) || null;
 }
 
 function truncateUTF8(str, max) {

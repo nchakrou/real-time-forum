@@ -5,11 +5,14 @@ import { CategoriesListener } from "../core/Listeners/Listeners.js";
 import { ProfileDropdown } from "../components/ProfileDropdown.js";
 import { isLogged } from "../main.js";
 import { Popup } from "../components/Popup.js";
+import { renderStoredNotifications, restoreUnreadDots } from "../core/WebSocket/shownotification.js";
 
 export function pagesInit(path = "/") {
     ProfileDropdown();
     populateProfile();
     headerButtons();
+    renderStoredNotifications(); 
+    restoreUnreadDots();
 
     if (path === "/chat") {
         ws.send(JSON.stringify({ type: "get_chat_users" }));

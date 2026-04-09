@@ -1,5 +1,4 @@
 import { states } from "../Listeners/postListners.js";
-import { showNotification } from "../WebSocket/shownotification.js";
 import { updateUserList } from "../../utils/chatUtils.js";
 
 export function message(data) {
@@ -9,31 +8,22 @@ export function message(data) {
   if (window.location.pathname === "/chat") {
     updateUserList(data.from);
   }
-
   if (window.location.pathname === "/chat" && currentChat === data.from) {
     const chatViewport = document.getElementById("chat-viewport");
     if (!chatViewport) return;
-
     const div = document.createElement("div");
     div.classList.add("message");
-
     const h4 = document.createElement("h4");
     h4.textContent = data.from;
-
     const p = document.createElement("p");
     p.textContent = data.message;
-
     div.appendChild(h4);
     div.appendChild(p);
     chatViewport.appendChild(div);
     chatViewport.scrollTop = chatViewport.scrollHeight;
-  } else if (
-    window.location.pathname === "/chat" &&
-    currentChat !== data.from
-  ) {
-    showNotification(data);
   }
 }
+
 
 export function chatHistory(data) {
   console.log("end", states.isEnd);

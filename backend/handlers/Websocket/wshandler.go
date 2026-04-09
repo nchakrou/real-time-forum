@@ -86,7 +86,10 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 				hub.GetNotifications(db, userid, conn)
 			case "get_chat_users":
 				hub.GetChatUsers(db, userid, conn)
-			
+			case "typing":
+				hub.SendTypingStatus(db, userid, req.Target, user.Nickname, true)
+			case "stop_typing":
+				hub.SendTypingStatus(db, userid, req.Target, user.Nickname, false)
 			}
 		}
 	}

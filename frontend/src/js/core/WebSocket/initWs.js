@@ -4,6 +4,7 @@ import { chatHistory } from "./messages.js";
 import {
   showNotification,
   storeNotification,
+  renderStoredNotifications,
 } from "../WebSocket/shownotification.js";
 import { Popup } from "../../components/Popup.js";
 import { updateUserList } from "../../utils/chatUtils.js";
@@ -31,6 +32,7 @@ export function OpenWS() {
     ws.onopen = () => {
       console.log("Connected to WebSocket server");
       ws.send(JSON.stringify({ type: "get_notifications" }));
+      renderStoredNotifications()
 
       resolve();
     };
@@ -61,6 +63,9 @@ export function OpenWS() {
           if (window.location.pathname !== "/chat") {
             handleJoin(data);
           }
+          break;
+        case "typing":
+          handleTypingStatus(data);
           break;
       }
     };
@@ -119,4 +124,19 @@ function handleJoin(data) {
     list = document.getElementsByClassName("list-users")[0];
   }
   list.prepend(userItem);
+}
+
+function handleTypingStatus(data) {
+
+  const currentChat = new URLSearchParams(window.location.search).get("username");
+  if (window.location.pathname === "/chat" && currentChat === data.from) {
+      const typingIndicator = document.getElementById("typing-indicator");
+      if (typingIndicator) {
+          if (data.is_typing) {
+              typingIndicator.style.display = "flex";
+          } else {
+              typingIndicator.style.display = "none";
+          }
+      }
+  }
 }

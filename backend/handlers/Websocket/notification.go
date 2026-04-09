@@ -15,7 +15,6 @@ type Notification struct {
 }
 
 func (hub *Hub) GetNotifications(db *sql.DB, userID int, conn *websocket.Conn) {
-
 	rows, err := db.Query(`
 	SELECT u.nickname, n.content, n.created_at
 	FROM notifications n

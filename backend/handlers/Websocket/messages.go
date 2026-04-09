@@ -21,6 +21,12 @@ type resChat struct {
 	Messages []Msg  `json:"Messages"`
 }
 
+type TypingResponse struct {
+	Type     string `json:"type"`
+	From     string `json:"from"`
+	IsTyping bool   `json:"is_typing"`
+}
+
 func (hub *Hub) SendPrivateMessage(db *sql.DB, fromID int, toUsername string, message string, fromUsername string) {
 
 	toID, err := TargetID(db, toUsername)
@@ -155,5 +161,33 @@ WHERE sender_id = ? AND receiver_id = ? AND type = 'message'
 	}); err != nil {
 		log.Println("Error sending messages:", err)
 		return
+	}
+}
+
+func (hub *Hub) SendTypingStatus(db *sql.DB, fromID int, toUsername string, fromUsername string, isTyping bool) {
+	toID, err := TargetID(db, toUsername)
+	if err != nil {
+		log.Println("Error getting target ID:", err)
+		return
+	}
+	if fromID == toID {
+		return
+	}
+
+	resp := TypingResponse{
+		Type:     "typing",
+		From:     fromUsername,
+		IsTyping: isTyping,
+	}
+
+	hub.mu.Lock()
+	conns := make([]*websocket.Conn, len(hub.Clients[toID]))
+	copy(conns, hub.Clients[toID])
+	hub.mu.Unlock()
+
+	for _, conn := range conns {
+		if err := conn.WriteJSON(resp); err != nil {
+			log.Println("Error sending typing status:", err)
+		}
 	}
 }

@@ -44,6 +44,14 @@ ${Header}
                 <p>Interact with other users in real-time. Select a contact from the sidebar to start chatting.</p>
             </div>
         </div>
+         <div class="typing-indicator" id="typing-indicator" style="display: none;">
+            <span class="typing-text"><span class="typing-name"></span> is typing</span>
+            <div class="typing-dots">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+        </div>
 
         <div class="chat-footer">
             <div class="chat-input-row">
@@ -142,30 +150,64 @@ function handleActiveChat(tagername) {
     );
 }
 function sentBtn() {
-  document.getElementById("chat-send-btn").addEventListener("click", () => {
+    let typingTimeout = null;
+    let isTyping = false;
     const messageInput = document.getElementById("chat-message-input");
-    const message = messageInput.value;
-    if (!message.trim()) return;
-    if (message) {
-      ws.send(
-        JSON.stringify({
-          type: "message",
-          target: document.getElementById("active-chat-name").textContent,
-          message: message,
-        }),
-      );
-      messageInput.value = "";
-    }
-    const chatViewport = document.getElementById("chat-viewport");
-    const messageDiv = document.createElement("div");
-    messageDiv.classList.add("Mymessage");
-    messageDiv.textContent = message;
-    chatViewport.appendChild(messageDiv);
-    chatViewport.scrollTop = chatViewport.scrollHeight;
-    chatViewport.scrollTop = chatViewport.scrollHeight;
-    const user = window.location.search;
-    const urlParams = new URLSearchParams(user);
-    const username = urlParams.get("username");
-    updateUserList(username);
-  });
+
+    messageInput.addEventListener("input", () => {
+        const target = document.getElementById("active-chat-name").textContent;
+  
+        if (!isTyping) {
+            isTyping = true;
+            ws.send(JSON.stringify({
+                type: "typing",
+                target: target,
+            }));
+        }
+
+        if (typingTimeout) {
+            clearTimeout(typingTimeout);
+        }
+
+        typingTimeout = setTimeout(() => {
+            isTyping = false;
+            ws.send(JSON.stringify({
+                type: "stop_typing",
+                target: target,
+            }));
+        }, 2000);
+    });
+
+    document.getElementById("chat-send-btn").addEventListener("click", () => {
+        const message = messageInput.value;
+        if (!message.trim()) return;
+
+        if (isTyping) {
+            isTyping = false;
+            clearTimeout(typingTimeout);
+            const target = document.getElementById("active-chat-name").textContent;
+            ws.send(JSON.stringify({
+                type: "stop_typing",
+                target: target,
+            }));
+        }        ws.send(
+            JSON.stringify({
+                type: "message",
+                target: document.getElementById("active-chat-name").textContent,
+                message: message,
+            })
+        );
+        messageInput.value = "";
+        const chatViewport = document.getElementById("chat-viewport");
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add("Mymessage");
+        messageDiv.textContent = message;
+        chatViewport.appendChild(messageDiv);
+        chatViewport.scrollTop = chatViewport.scrollHeight;
+
+        const user = window.location.search;
+        const urlParams = new URLSearchParams(user);
+        const username = urlParams.get("username");
+        updateUserList(username);
+    });
 }
