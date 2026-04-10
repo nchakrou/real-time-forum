@@ -6,8 +6,18 @@ import { Popup } from "../components/Popup.js";
 
 const homePage = `
 ${Header}
+<div class="mobile-toggles">
+  <button id="toggle-categories" class="mobile-toggle-btn">
+    <img src="/frontend/src/assets/plus.svg" alt="Categories">
+    <span>Categories</span>
+  </button>
+  <button id="toggle-users" class="mobile-toggle-btn">
+    <img src="/frontend/src/assets/plus.svg" alt="Users">
+    <span>Users</span>
+  </button>
+</div>
 <div class = "app-home">
-<div class = "categories">
+<div class = "categories" id="mobile-categories">
   <h2>Categories</h2>
   <ul id = "categories" class="list-categories">
   <li data-category="FPS">FPS</li>
@@ -24,7 +34,7 @@ ${Header}
   <div id = "posts-container">
   </div>
 </div>
-<div class = "online-users">
+<div class = "online-users" id="mobile-users">
   <h2>Users</h2>
 </div>
 </div>

@@ -3,6 +3,16 @@ import { Header } from "../components/Header.js";
 import { pagesInit } from "../components/pagesInit.js";
 const myPostsPage = `
 ${Header}
+<div class="mobile-toggles">
+  <button id="toggle-categories" class="mobile-toggle-btn">
+    <img src="/frontend/src/assets/plus.svg" alt="Categories">
+    <span>Categories</span>
+  </button>
+  <button id="toggle-users" class="mobile-toggle-btn">
+    <img src="/frontend/src/assets/plus.svg" alt="Users">
+    <span>Users</span>
+  </button>
+</div>
 <div class = "app-home">
 <div id = "categories"class = "categories">
   <h2>Categories</h2>
@@ -25,11 +35,11 @@ ${Header}
   <h2>Users</h2>
 </div>
 </div>
-`
+`;
 
 export function myPosts() {
-    document.body.innerHTML = myPostsPage
-   
-    pagesInit("/myPosts")
-    fetchPosts("/api/myposts")
+  document.body.innerHTML = myPostsPage;
+
+  pagesInit("/myPosts");
+  fetchPosts("/api/myposts");
 }
