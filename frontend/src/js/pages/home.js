@@ -67,7 +67,6 @@ export function home() {
       "scroll",
       throttle(() => {
         const { scrollTop, scrollHeight, clientHeight } = postsContainer;
-        console.log(scrollTop + clientHeight - scrollHeight - 200);
 
         if (scrollTop + clientHeight >= scrollHeight - 200) {
           const path = category

@@ -5,8 +5,6 @@ import { pagesInit } from "../components/pagesInit.js";
 
 export async function toggleLike(id, value) {
   try {
-    console.log("like :", { id, value });
-
     const res = await fetch(`/api/like?id=${id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -20,9 +20,9 @@ export function pagesInit(path = "/") {
   if (path === "/chat") {
     ws.send(JSON.stringify({ type: "get_chat_users" }));
   } else {
-    ws.send(JSON.stringify({ type: "online_users" }));
     CategoriesListener("/");
   }
+  ws.send(JSON.stringify({ type: "online_users" }));
 
   initMobileToggles();
 }
@@ -77,6 +77,16 @@ async function populateProfile() {
 
 export function OnlineUsers(users) {
   if (!ws) return;
+  if (window.location.pathname.includes("/chat")) {
+    if (!users) return;
+    users.forEach((user) => {
+      const div = document.querySelector(`.user-item[data-username="${user}"]`);
+      if (div) {
+       div.classList.add("online");
+      }
+    });
+    
+  }
   const usersContainer = document.querySelector(".online-users");
   if (!usersContainer) return;
 

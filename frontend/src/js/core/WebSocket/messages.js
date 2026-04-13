@@ -1,5 +1,5 @@
 import { states } from "../Listeners/postListners.js";
-import { updateUserList } from "../../utils/chatUtils.js";
+import { updateUserList, formatTime } from "../../utils/chatUtils.js";
 
 export function message(data) {
   const currentChat = new URLSearchParams(window.location.search).get(
@@ -17,8 +17,14 @@ export function message(data) {
     h4.textContent = data.from;
     const p = document.createElement("p");
     p.textContent = data.message;
+
+    const timeSpan = document.createElement("span");
+    timeSpan.classList.add("message-time");
+    timeSpan.textContent = formatTime(data.CreatedAt);
+
     div.appendChild(h4);
     div.appendChild(p);
+    div.appendChild(timeSpan);
     chatViewport.appendChild(div);
     chatViewport.scrollTop = chatViewport.scrollHeight;
   }
@@ -26,8 +32,6 @@ export function message(data) {
 
 
 export function chatHistory(data) {
-  console.log("end", states.isEnd);
-
   const chatViewport = document.getElementById("chat-viewport");
   if (states.offset === 0) {
     chatViewport.innerHTML = "";
@@ -42,18 +46,27 @@ export function chatHistory(data) {
       const target = new URLSearchParams(window.location.search).get(
         "username",
       );
-      console.log("hadi", message.from, target);
-      const p = document.createElement("p");
+
       const sender = document.createElement("h4");
 
       sender.textContent = message.from;
+
+      const p = document.createElement("p");
       p.textContent = message.message;
+
+      const timeSpan = document.createElement("span");
+      timeSpan.classList.add("message-time");
+      timeSpan.textContent = formatTime(message.CreatedAt);
+
       messageDiv.appendChild(sender);
       messageDiv.appendChild(p);
+      messageDiv.appendChild(timeSpan);
+
       if (message.from === target) {
         messageDiv.classList.add("message");
       } else {
         messageDiv.classList.add("Mymessage");
+        sender.textContent = "Me";
       }
       chatViewport.prepend(messageDiv);
     });
@@ -69,7 +82,7 @@ export function chatHistory(data) {
     chatViewport.innerHTML = `
         <div class="empty-chat-state">
             <div class="empty-chat-icon">
-                <img src="src/assets/chat.svg" alt="Chat Icon">
+                <img src="/frontend/src/assets/chat.svg" alt="Chat Icon">
             </div>
             <h3>No messages yet</h3>
             <p>Start a conversation</p>

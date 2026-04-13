@@ -66,7 +66,8 @@ func (h *Hub) GetChatUsers(db *sql.DB, senderID int, conn *websocket.Conn) {
 		WHERE u.id != ?
 		ORDER BY 
 			CASE WHEN m.created_at IS NULL THEN 1 ELSE 0 END, 
-			m.created_at DESC
+			m.created_at DESC,
+			u.nickname ASC
 	`
 	rows, err := db.Query(query, senderID, senderID, senderID)
 	if err != nil {

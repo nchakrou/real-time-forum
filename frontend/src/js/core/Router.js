@@ -33,5 +33,4 @@ export function router(path) {
   } else {
     ErrorPage();
   }
-  console.log(path);
 }

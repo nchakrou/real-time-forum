@@ -46,7 +46,7 @@ function handleLogin() {
       try {
         const response = await fetch("/api/login", {
           ...request,
-          credentials: "include", 
+          credentials: "include",
         });
 
         if (response.ok) {

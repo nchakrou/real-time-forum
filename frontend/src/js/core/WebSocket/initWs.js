@@ -33,7 +33,7 @@ export function OpenWS() {
     ws.onopen = () => {
       console.log("Connected to WebSocket server");
       ws.send(JSON.stringify({ type: "get_notifications" }));
-      renderStoredNotifications()
+      renderStoredNotifications();
 
       resolve();
     };
@@ -71,17 +71,17 @@ console.log(data.type);
           break;
         case "user_offline":
                     
-            if (window.location.pathname !== "/chat") {
+          if (window.location.pathname !== "/chat") {
               console.log(data.from);
               
-              const userItem = document.querySelector(
-                `.user-item[data-username="${data.from}"]`,
-              );
-              if (userItem) {
-                userItem.remove();
-              }
+            const userItem = document.querySelector(
+              `.user-item[data-username="${data.from}"]`,
+            );
+            if (userItem) {
+              userItem.remove();
             }
-            break;
+          }
+          break;
       }
     };
 
@@ -145,13 +145,13 @@ function handleTypingStatus(data) {
 
   const currentChat = new URLSearchParams(window.location.search).get("username");
   if (window.location.pathname === "/chat" && currentChat === data.from) {
-      const typingIndicator = document.getElementById("typing-indicator");
-      if (typingIndicator) {
-          if (data.is_typing) {
-              typingIndicator.style.display = "flex";
-          } else {
-              typingIndicator.style.display = "none";
-          }
+    const typingIndicator = document.getElementById("typing-indicator");
+    if (typingIndicator) {
+      if (data.is_typing) {
+        typingIndicator.style.display = "flex";
+      } else {
+        typingIndicator.style.display = "none";
       }
+    }
   }
 }

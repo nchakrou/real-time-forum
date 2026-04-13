@@ -18,7 +18,6 @@ export const states = {
 
 export async function fetchPosts(path) {
   if (states.isEnd) return;
-  console.log("fetching posts", states.offset, path, states.isEnd);
 
   const isFirstLoad = states.offset === 0;
 
@@ -124,7 +123,7 @@ export function createpostsContainer(posts, isFirstLoad = false) {
 </div>
         `
       );
-      
+
       postsContainer.appendChild(postElement);
       const likeBtn = postElement.querySelector(".like_button");
       const dislikeBtn = postElement.querySelector(".dislike_button");
@@ -188,23 +187,23 @@ async function submitCommentListener(e) {
     const data = await res.json();
 
 
-if (data.status === "ok") {
-  commentInput.value = "";
+    if (data.status === "ok") {
+      commentInput.value = "";
 
-  const commentBtn = post.querySelector(".comment_button span");
+      const commentBtn = post.querySelector(".comment_button span");
 
-  commentBtn.textContent = data.comments;
+      commentBtn.textContent = data.comments;
 
-  post.dataset.commentOffset = 0;
-  const commentsContainer = post.querySelector(".comments");
-  commentsContainer.innerHTML = "";
+      post.dataset.commentOffset = 0;
+      const commentsContainer = post.querySelector(".comments");
+      commentsContainer.innerHTML = "";
 
-  const loadMoreBtn = post.querySelector(".load-more-comments");
-  loadMoreBtn.classList.add("hidden");
+      const loadMoreBtn = post.querySelector(".load-more-comments");
+      loadMoreBtn.classList.add("hidden");
 
-  await loadComments(post);
-  commentsContainer.scrollTop = commentsContainer.scrollHeight;
-}
+      await loadComments(post);
+      commentsContainer.scrollTop = commentsContainer.scrollHeight;
+    }
   } catch (err) {
     console.error("Error adding comment:", err);
   }
@@ -213,8 +212,6 @@ if (data.status === "ok") {
 async function likeListener(e) {
   const post = e.target.closest(".post");
   const postId = post.dataset.postId;
-
-  console.log("like click, postid =", postId);
 
   await toggleLike(postId, 1);
 }
@@ -240,8 +237,8 @@ async function commentListener(e) {
 
   if (!isHidden) {
     post.dataset.commentOffset = 0;
-post.querySelector(".comments").innerHTML = "";
-await loadComments(post);
+    post.querySelector(".comments").innerHTML = "";
+    await loadComments(post);
   }
 }
 
@@ -255,7 +252,7 @@ async function loadComments(post) {
     const res = await fetch(`/api/comments?post_id=${postId}&offset=${offset}&limit=10`);
     if (!res.ok) throw new Error("Failed to fetch comments");
     const comments = await res.json();
-if (!comments || comments.length === 0) {
+    if (!comments || comments.length === 0) {
       if (offset === 0) {
         commentsContainer.innerHTML = "<p>No comments yet</p>";
       }

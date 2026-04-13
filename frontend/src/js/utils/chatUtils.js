@@ -30,3 +30,8 @@ export function updateUserList(username) {
     usersDiv.prepend(userItem);
   }
 }
+
+export function formatTime(timestamp) {
+  const date = timestamp ? new Date(timestamp) : new Date();
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}

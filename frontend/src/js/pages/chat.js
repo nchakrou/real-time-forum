@@ -5,7 +5,7 @@ import { router } from "../core/Router.js";
 import { Popup } from "../components/Popup.js";
 import { states } from "../core/Listeners/postListners.js";
 import { throttle } from "../utils/throttle.js";
-import { updateUserList } from "../utils/chatUtils.js";
+import { updateUserList, formatTime } from "../utils/chatUtils.js";
 import { setCurrentOpenChat, clearCurrentOpenChat, restoreUnreadDots } from "../core/WebSocket/shownotification.js"; 
 
 
@@ -70,144 +70,154 @@ ${Header}
 
 
 export function chat() {
-    document.body.innerHTML = chatPage;
-    pagesInit("/chat");
+  document.body.innerHTML = chatPage;
+  pagesInit("/chat");
 
-    clearCurrentOpenChat();
+  clearCurrentOpenChat();
 
-   
-    setTimeout(() => restoreUnreadDots(), 100);
 
-    if (window.location.search) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const username = urlParams.get("username");
-        if (username) {
-            handleActiveChat(username);
-            sentBtn();
-        }
+  setTimeout(() => restoreUnreadDots(), 100);
+
+  if (window.location.search) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const username = urlParams.get("username");
+    if (username) {
+      handleActiveChat(username);
+      sentBtn();
     }
+  }
 }
 
 function handleActiveChat(tagername) {
-    if (!ws || ws.readyState !== WebSocket.OPEN) {
-        Popup.show("Connection lost. Please refresh the page.");
-        return;
-    }
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    Popup.show("Connection lost. Please refresh the page.");
+    return;
+  }
 
-    setCurrentOpenChat(tagername);
+  setCurrentOpenChat(tagername);
 
-    ws.send(
-        JSON.stringify({
+  ws.send(
+    JSON.stringify({
+      type: "getChat",
+      target: tagername,
+      offset: 0,
+    }),
+  );
+
+  const chatMain = document.getElementById("chat-main");
+
+  if (
+    !getComputedStyle(chatMain).display ||
+    getComputedStyle(chatMain).display === "none"
+  ) {
+    chatMain.style.display = "flex";
+    const chatSidebar = document.getElementById("chat-sidebar");
+    chatSidebar.style.display = "none";
+    const mobileBackBtn = document.getElementById("mobile-back-btn");
+    mobileBackBtn.style.display = "flex";
+    mobileBackBtn.addEventListener("click", () => {
+      clearCurrentOpenChat();
+      router("/chat");
+    });
+  }
+
+  const chatAvatar = document.getElementById("active-chat-avatar");
+  const chatName = document.getElementById("active-chat-name");
+  chatAvatar.textContent = tagername.charAt(0).toUpperCase();
+  chatName.textContent = tagername;
+  const emptyChatState = document.getElementsByClassName("empty-chat-state")[0];
+  emptyChatState.style.display = "none";
+  document.getElementById("chat-viewport").addEventListener(
+    "scroll",
+    throttle(() => {
+      if (document.getElementById("chat-viewport").scrollTop <= 50) {
+        if (states.isEnd) {
+          return;
+        }
+        ws.send(
+          JSON.stringify({
             type: "getChat",
             target: tagername,
-            offset: 0,
-        }),
-    );
-
-    const chatMain = document.getElementById("chat-main");
-
-    if (
-        !getComputedStyle(chatMain).display ||
-        getComputedStyle(chatMain).display === "none"
-    ) {
-        chatMain.style.display = "flex";
-        const chatSidebar = document.getElementById("chat-sidebar");
-        chatSidebar.style.display = "none";
-        const mobileBackBtn = document.getElementById("mobile-back-btn");
-        mobileBackBtn.style.display = "flex";
-        mobileBackBtn.addEventListener("click", () => {
-            clearCurrentOpenChat(); 
-            router("/chat");
-        });
-    }
-
-    const chatAvatar = document.getElementById("active-chat-avatar");
-    const chatName = document.getElementById("active-chat-name");
-    chatAvatar.textContent = tagername.charAt(0).toUpperCase();
-    chatName.textContent = tagername;
-    const emptyChatState = document.getElementsByClassName("empty-chat-state")[0];
-    emptyChatState.style.display = "none";
-    document.getElementById("chat-viewport").addEventListener(
-        "scroll",
-        throttle(() => {
-            console.log(document.getElementById("chat-viewport").scrollTop);
-
-            if (document.getElementById("chat-viewport").scrollTop <= 50) {
-                console.log("end", states.isEnd);
-
-                if (states.isEnd) {
-                    return;
-                }
-                ws.send(
-                    JSON.stringify({
-                        type: "getChat",
-                        target: tagername,
-                        offset: states.offset,
-                    }),
-                );
-            }
-        }, 200),
-    );
+            offset: states.offset,
+          }),
+        );
+      }
+    }, 200),
+  );
 }
 function sentBtn() {
-    let typingTimeout = null;
-    let isTyping = false;
-    const messageInput = document.getElementById("chat-message-input");
+  let typingTimeout = null;
+  let isTyping = false;
+  const messageInput = document.getElementById("chat-message-input");
 
-    messageInput.addEventListener("input", () => {
-        const target = document.getElementById("active-chat-name").textContent;
-  
-        if (!isTyping) {
-            isTyping = true;
+  messageInput.addEventListener("input", () => {
+    const target = document.getElementById("active-chat-name").textContent;
+
+    if (!isTyping) {
+      isTyping = true;
             ws.send(JSON.stringify({
-                type: "typing",
-                target: target,
+          type: "typing",
+          target: target,
             }));
-        }
+    }
 
-        if (typingTimeout) {
-            clearTimeout(typingTimeout);
-        }
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+    }
 
-        typingTimeout = setTimeout(() => {
-            isTyping = false;
+    typingTimeout = setTimeout(() => {
+      isTyping = false;
             ws.send(JSON.stringify({
-                type: "stop_typing",
-                target: target,
+          type: "stop_typing",
+          target: target,
             }));
-        }, 2000);
-    });
+    }, 2000);
+  });
 
-    document.getElementById("chat-send-btn").addEventListener("click", () => {
-        const message = messageInput.value;
-        if (!message.trim()) return;
+  document.getElementById("chat-send-btn").addEventListener("click", () => {
+    const message = messageInput.value;
+    if (!message.trim()) return;
 
-        if (isTyping) {
-            isTyping = false;
-            clearTimeout(typingTimeout);
-            const target = document.getElementById("active-chat-name").textContent;
+    if (isTyping) {
+      isTyping = false;
+      clearTimeout(typingTimeout);
+      const target = document.getElementById("active-chat-name").textContent;
             ws.send(JSON.stringify({
-                type: "stop_typing",
-                target: target,
+          type: "stop_typing",
+          target: target,
             }));
         }        ws.send(
-            JSON.stringify({
-                type: "message",
-                target: document.getElementById("active-chat-name").textContent,
-                message: message,
+      JSON.stringify({
+        type: "message",
+        target: document.getElementById("active-chat-name").textContent,
+        message: message,
             })
-        );
-        messageInput.value = "";
-        const chatViewport = document.getElementById("chat-viewport");
-        const messageDiv = document.createElement("div");
-        messageDiv.classList.add("Mymessage");
-        messageDiv.textContent = message;
-        chatViewport.appendChild(messageDiv);
-        chatViewport.scrollTop = chatViewport.scrollHeight;
+    );
+    messageInput.value = "";
+    const chatViewport = document.getElementById("chat-viewport");
+    const messageDiv = document.createElement("div");
+    messageDiv.classList.add("Mymessage");
 
-        const user = window.location.search;
-        const urlParams = new URLSearchParams(user);
-        const username = urlParams.get("username");
-        updateUserList(username);
-    });
+    const sender = document.createElement("h4");
+    sender.textContent = "Me";
+
+    const p = document.createElement("p");
+    p.textContent = message;
+
+    const timeSpan = document.createElement("span");
+    timeSpan.classList.add("message-time");
+    timeSpan.textContent = formatTime();
+
+    messageDiv.appendChild(sender);
+    messageDiv.appendChild(p);
+    messageDiv.appendChild(timeSpan);
+
+    chatViewport.appendChild(messageDiv);
+    chatViewport.scrollTop = chatViewport.scrollHeight;
+
+    const user = window.location.search;
+    const urlParams = new URLSearchParams(user);
+    const username = urlParams.get("username");
+    updateUserList(username);
+  });
 }

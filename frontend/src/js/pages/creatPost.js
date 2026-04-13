@@ -105,8 +105,6 @@ function handleCreatePost() {
       return;
     }
 
-    console.log(response.statusText);
-
     if (response.ok) {
       router("/");
     } else {
