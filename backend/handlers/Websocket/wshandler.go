@@ -32,9 +32,16 @@ type response struct {
 	CreatedAt string   `json:"timestamp,omitempty"`
 	Chat      []Chat   `json:"chat,omitempty"`
 }
-type Chat struct {
-	Target    string `json:"target"`
+type LastMessage struct {
+	Content   string `json:"content"`
 	CreatedAt string `json:"created_at"`
+}
+
+type Chat struct {
+	Target      string       `json:"target"`
+	CreatedAt   string       `json:"created_at,omitempty"`
+	IsOnline    bool         `json:"is_online"`
+	LastMessage *LastMessage `json:"last_message,omitempty"`
 }
 
 func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {

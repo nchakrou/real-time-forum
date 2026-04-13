@@ -2,7 +2,6 @@ package Websocket
 
 import (
 	"database/sql"
-	"fmt"
 	"forum/backend"
 	"log"
 
@@ -31,54 +30,6 @@ func (h *Hub) OnlineUsers(db *sql.DB, senderID int, conn *websocket.Conn) {
 		log.Println("Error writing JSON:", err)
 	}
 }
-func (h *Hub) GetChatUsers(db *sql.DB, senderID int, conn *websocket.Conn) {
-	query := `SELECT 
-    u.nickname,
-    m.created_at
-FROM messages m
-JOIN (
-    SELECT MAX(id) AS last_id
-    FROM messages
-    WHERE (sender_id = ? OR receiver_id = ?) AND sender_id != receiver_id
-    GROUP BY
-        CASE
-            WHEN sender_id = ? THEN receiver_id
-            ELSE sender_id
-        END
-) t
-ON m.id = t.last_id
-JOIN users u
-ON u.id = CASE
-            WHEN m.sender_id = ? THEN m.receiver_id
-            ELSE m.sender_id
-           END
-ORDER BY m.created_at DESC;`
-
-	var res response
-	res.Type = "chat_users"
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	rows, err := db.Query(query, senderID, senderID, senderID, senderID)
-	var chat []Chat
-	if err != nil {
-		log.Println("Error getting chat users:", err)
-		return
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var temp Chat
-		if err := rows.Scan(&temp.Target, &temp.CreatedAt); err != nil {
-			log.Println("Error scanning chat users:", err)
-			continue
-		}
-		chat = append(chat, temp)
-	}
-	res.Chat = chat
-	fmt.Println(res)
-	if err := conn.WriteJSON(res); err != nil {
-		log.Println("Error writing JSON:", err)
-	}
-}
 func (h *Hub) Join(db *sql.DB, user backend.User, conn *websocket.Conn) {
 	var res response
 	res.Type = "join"
@@ -95,4 +46,76 @@ func (h *Hub) Join(db *sql.DB, user backend.User, conn *websocket.Conn) {
 		}
 	}
 
+}
+func (h *Hub) GetChatUsers(db *sql.DB, senderID int, conn *websocket.Conn) {
+	query := `
+		SELECT 
+			u.id, 
+			u.nickname, 
+			m.content, 
+			m.created_at
+		FROM users u
+		LEFT JOIN messages m ON m.id = (
+			SELECT id 
+			FROM messages 
+			WHERE (sender_id = ? AND receiver_id = u.id) 
+			   OR (sender_id = u.id AND receiver_id = ?)
+			ORDER BY created_at DESC 
+			LIMIT 1
+		)
+		WHERE u.id != ?
+		ORDER BY 
+			CASE WHEN m.created_at IS NULL THEN 1 ELSE 0 END, 
+			m.created_at DESC
+	`
+	rows, err := db.Query(query, senderID, senderID, senderID)
+	if err != nil {
+		log.Println("Error querying chat users:", err)
+		return
+	}
+	defer rows.Close()
+
+	var chats []Chat
+
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for rows.Next() {
+		var userID int
+		var nickname string
+		var content sql.NullString
+		var createdAt sql.NullString
+
+		if err := rows.Scan(&userID, &nickname, &content, &createdAt); err != nil {
+			log.Println("Error scanning user:", err)
+			continue
+		}
+
+		// Check if user is online
+		isOnline := false
+		if conns, exists := h.Clients[userID]; exists && len(conns) > 0 {
+			isOnline = true
+		}
+
+		var lastMsg *LastMessage
+		if content.Valid && createdAt.Valid {
+			lastMsg = &LastMessage{
+				Content:   content.String,
+				CreatedAt: createdAt.String,
+			}
+		}
+
+		chats = append(chats, Chat{
+			Target:      nickname,
+			IsOnline:    isOnline,
+			LastMessage: lastMsg,
+		})
+	}
+
+	var res response
+	res.Type = "chat_users"
+	res.Chat = chats
+
+	if err := conn.WriteJSON(res); err != nil {
+		log.Println("Error writing final chat users JSON:", err)
+	}
 }
