@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"forum/backend"
@@ -14,14 +15,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var emailrg = regexp.MustCompile(`^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`)
+var usrRgx = regexp.MustCompile(`^[a-zA-Z0-9_-]{2,16}$`)
+
 func RegisterHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			backend.WriteJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
 			return
 		}
-		emailrg := regexp.MustCompile(`^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`)
-		usrRgx := regexp.MustCompile(`^[a-zA-Z0-9_-]{2,16}$`)
 
 		var req struct {
 			FirstName string `json:"firstName"`
@@ -45,17 +47,21 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 			backend.WriteJSONError(w, http.StatusBadRequest, "invalid nickname")
 			return
 		}
-		if req.FirstName == "" || req.LastName == "" || req.Nickname == "" || req.Age == "" || req.Email == "" || req.Password == "" || req.Gender == "" {
+		if strings.TrimSpace(req.FirstName) == "" || strings.TrimSpace(req.LastName) == "" || strings.TrimSpace(req.Nickname) == "" || strings.TrimSpace(req.Age) == "" || strings.TrimSpace(req.Email) == "" || strings.TrimSpace(req.Password) == "" || strings.TrimSpace(req.Gender) == "" {
 			backend.WriteJSONError(w, http.StatusBadRequest, "All fields are required to create your account.")
 			return
 		}
-		if len(req.Password) < 8 {
+		if len(strings.TrimSpace(req.Password)) < 8 {
 			backend.WriteJSONError(w, http.StatusBadRequest, "Your password is too short—please use at least 8 characters.")
 			return
 		}
 		ageInt, err := strconv.Atoi(req.Age)
 		if err != nil || ageInt < 18 || ageInt > 80 {
 			backend.WriteJSONError(w, http.StatusBadRequest, "Please enter a valid age from 18 to 80.")
+			return
+		}
+		if req.Gender != "male" && req.Gender != "female" {
+			backend.WriteJSONError(w, http.StatusBadRequest, "Please select a valid gender.")
 			return
 		}
 

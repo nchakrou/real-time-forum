@@ -7,10 +7,9 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 	"time"
-
 	"forum/backend"
-
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -30,7 +29,7 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 			backend.WriteJSONError(w, http.StatusBadRequest, "something went wrong. Please check your entry.")
 			return
 		}
-		if creds.Username == "" || creds.Password == "" {
+		if strings.TrimSpace(creds.Username) == "" || strings.TrimSpace(creds.Password) == "" {
 			backend.WriteJSONError(w, http.StatusBadRequest, "Please enter both your nickname/email and password.")
 			return
 		}
@@ -104,7 +103,8 @@ func generateRandomToken() string {
 	b := make([]byte, 32)
 	_, err := rand.Read(b)
 	if err != nil {
-		panic(err)
+		log.Println("token generation error:", err)
+		return ""
 	}
 	return hex.EncodeToString(b)
 }

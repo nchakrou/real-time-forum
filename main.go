@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"forum/backend"
 	"forum/backend/handlers"
@@ -12,11 +13,6 @@ import (
 
 	"github.com/gorilla/websocket"
 )
-
-var users = map[string]string{
-	"1": "123",
-	"2": "1234",
-}
 
 type login struct {
 	Username string `json:"username"`
@@ -34,29 +30,45 @@ func main() {
 	defer db.Close()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("ejrtnsdfsefnsdkpo")
-		fmt.Println("the url", r.URL)
 		http.ServeFile(w, r, "frontend/index.html")
 	})
 
 	http.HandleFunc("/frontend/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("the url hhhh", r.URL.Path)
-		fmt.Println("fthe src")
+		infos, err := os.Stat(r.URL.Path[1:])
+		if err != nil {
+			http.ServeFile(w, r, "frontend/index.html")
+			return
+		}
+		if infos.IsDir() {
+			http.ServeFile(w, r, "frontend/index.html")
+			return
+		}
+		if os.IsNotExist(err) {
+			http.ServeFile(w, r, "frontend/index.html")
+			return
+		}
+
 		http.ServeFile(w, r, r.URL.Path[1:])
 	})
+	
 	http.HandleFunc("/api/login", auth.LoginHandler(db))
 	http.HandleFunc("/api/register", auth.RegisterHandler(db))
 	http.HandleFunc("/api/islogged", auth.IsLogged(db))
 	http.HandleFunc("/api/logout", auth.Logout(db))
+
+
 	http.HandleFunc("/api/liked-posts", backend.Middleware(db, handlers.HandleLikedPosts(db)))
 	http.HandleFunc("/api/like", backend.Middleware(db, handlers.HandleLike(db, "post")))
 	http.HandleFunc("/api/like-comment", backend.Middleware(db, handlers.HandleLike(db, "comment")))
 	http.HandleFunc("/api/add-comment", backend.Middleware(db, handlers.HandleAddComment(db)))
 	http.HandleFunc("/api/comments", backend.Middleware(db, handlers.HandleGetComments(db)))
 
+
 	http.HandleFunc("/api/posts", backend.Middleware(db, handlers.GetPostsHandler(db)))
 	http.HandleFunc("/api/createpost", backend.Middleware(db, handlers.CreatePostHandler(db)))
 	http.HandleFunc("/api/myposts", backend.Middleware(db, handlers.GetMyPostsHandler(db)))
+
+
 	http.HandleFunc("/ws", backend.Middleware(db, Websocket.WsHandler(db, hub)))
 
 	fmt.Println("Server started at http://localhost:8081")
