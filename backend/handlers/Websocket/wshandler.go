@@ -22,7 +22,7 @@ type request struct {
 	Target    string `json:"target,omitempty"`
 	Message   string `json:"message,omitempty"`
 	CreatedAt int64  `json:"timestamp,omitempty"`
-	Offset    int    `json:"offset,omitempty"`
+	LastID    int    `json:"lastID,omitempty"`
 }
 type response struct {
 	Type      string   `json:"type"`
@@ -104,7 +104,7 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 			case "message":
 				hub.SendPrivateMessage(db, userid, req.Target, req.Message, user.Nickname)
 			case "getChat":
-				hub.GetMessages(db, userid, req.Target, conn, user.Nickname, req.Offset)
+				hub.GetMessages(db, userid, req.Target, conn, user.Nickname, req.LastID)
 			case "get_notifications":
 				hub.GetNotifications(db, userid, conn)
 			case "get_chat_users":

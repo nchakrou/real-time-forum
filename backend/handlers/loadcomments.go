@@ -10,7 +10,7 @@ import (
 	"forum/backend"
 )
 
-// select comments with limit & offset for "Load more"
+// HandleGetComments retrieves all comments for a post.
 func HandleGetComments(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -21,8 +21,6 @@ func HandleGetComments(db *sql.DB) http.HandlerFunc {
 		}
 
 		postIDstr := r.URL.Query().Get("post_id")
-		offsetStr := r.URL.Query().Get("offset")
-		limitStr := r.URL.Query().Get("limit")
 
 		if postIDstr == "" {
 			backend.WriteJSONError(w, http.StatusBadRequest, "something went wrong. Please try again.")
@@ -35,25 +33,13 @@ func HandleGetComments(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		// Default values
-		offset := 0
-		limit := 10
-
-		if offsetStr != "" {
-			offset, _ = strconv.Atoi(offsetStr)
-		}
-		if limitStr != "" {
-			limit, _ = strconv.Atoi(limitStr)
-		}
-
 		rows, err := db.Query(`
 			SELECT users.nickname, comments.content, comments.created_at
 			FROM comments
 			JOIN users ON users.id = comments.user_id
 			WHERE comments.post_id = ?
 			ORDER BY comments.created_at DESC
-			LIMIT ? OFFSET ?
-		`, postID, limit, offset)
+		`, postID)
 
 		if err != nil {
 			log.Println("DB query error:", err)

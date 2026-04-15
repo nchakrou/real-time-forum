@@ -6,7 +6,6 @@ import (
 	"forum/backend"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -30,17 +29,13 @@ func GetPostsHandler(db *sql.DB) http.HandlerFunc {
 
 		user, err := backend.GetUserIDFromRequest(db, r)
 		userID := 0
-		if err == nil {
-			userID = user.ID
-		}
-
-		category := r.URL.Query().Get("category")
-		offsetstr := r.URL.Query().Get("offset")
-		offset, err := strconv.Atoi(offsetstr)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
+			backend.WriteJSONError(w, http.StatusUnauthorized, "Unauthorized")
 			return
 		}
+		userID = user.ID
+
+		category := r.URL.Query().Get("category")
 
 		var rows *sql.Rows
 
@@ -56,8 +51,7 @@ func GetPostsHandler(db *sql.DB) http.HandlerFunc {
 				LEFT JOIN likes l ON l.post_id = p.id AND l.user_id = ?
 				GROUP BY p.id 
 				ORDER BY p.created_at DESC
-				LIMIT 10 OFFSET ?
-			`, userID, offset)
+			`, userID)
 
 		} else {
 			rows, err = db.Query(`
@@ -77,8 +71,7 @@ func GetPostsHandler(db *sql.DB) http.HandlerFunc {
 					WHERE c3.name = ?
 				)
 				ORDER BY p.created_at DESC
-				LIMIT 10 OFFSET ?
-			`, userID, category, offset)
+			`, userID, category)
 		}
 
 		if err != nil {
@@ -90,10 +83,8 @@ func GetPostsHandler(db *sql.DB) http.HandlerFunc {
 
 		var posts = struct {
 			Posts []Post
-			IsEnd bool
 		}{
 			Posts: []Post{},
-			IsEnd: false,
 		}
 
 		for rows.Next() {
@@ -107,10 +98,6 @@ func GetPostsHandler(db *sql.DB) http.HandlerFunc {
 			}
 			post.Categories = strings.Split(category, ",")
 			posts.Posts = append(posts.Posts, post)
-		}
-
-		if len(posts.Posts) < 10 {
-			posts.IsEnd = true
 		}
 
 		w.Header().Set("Content-Type", "application/json")

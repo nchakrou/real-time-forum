@@ -58,19 +58,21 @@ func main() {
 
 
 	http.HandleFunc("/api/liked-posts", backend.Middleware(db, handlers.HandleLikedPosts(db)))
+	http.HandleFunc("/api/posts", backend.Middleware(db, handlers.GetPostsHandler(db)))
+	http.HandleFunc("/api/createpost", backend.Middleware(db, handlers.CreatePostHandler(db)))
+	http.HandleFunc("/api/myposts", backend.Middleware(db, handlers.GetMyPostsHandler(db)))
+
+
 	http.HandleFunc("/api/like", backend.Middleware(db, handlers.HandleLike(db, "post")))
 	http.HandleFunc("/api/like-comment", backend.Middleware(db, handlers.HandleLike(db, "comment")))
 	http.HandleFunc("/api/add-comment", backend.Middleware(db, handlers.HandleAddComment(db)))
 	http.HandleFunc("/api/comments", backend.Middleware(db, handlers.HandleGetComments(db)))
 
 
-	http.HandleFunc("/api/posts", backend.Middleware(db, handlers.GetPostsHandler(db)))
-	http.HandleFunc("/api/createpost", backend.Middleware(db, handlers.CreatePostHandler(db)))
-	http.HandleFunc("/api/myposts", backend.Middleware(db, handlers.GetMyPostsHandler(db)))
-
-
 	http.HandleFunc("/ws", backend.Middleware(db, Websocket.WsHandler(db, hub)))
 
 	fmt.Println("Server started at http://localhost:8081")
 	log.Fatal(http.ListenAndServe(":8081", nil))
+
+
 }

@@ -1,4 +1,4 @@
-import { states } from "../Listeners/postListners.js";
+import { chatStates } from "../chatStates.js";
 import { updateUserList, formatTime } from "../../utils/chatUtils.js";
 
 export function message(data) {
@@ -33,13 +33,18 @@ export function message(data) {
 
 export function chatHistory(data) {
   const chatViewport = document.getElementById("chat-viewport");
-  if (states.offset === 0) {
+  const isFirstLoad = chatStates.lastID === 0;
+
+  if (isFirstLoad) {
     chatViewport.innerHTML = "";
   }
-  states.offset += 10;
-  if (data.Messages) {
+
+  if (data.Messages && data.Messages.length > 0) {
+
+    chatStates.lastID = data.Messages[data.Messages.length - 1].id;
+
     if (data.Messages.length < 10) {
-      states.isEnd = true;
+      chatStates.isEnd = true;
     }
     data.Messages.forEach((message) => {
       const messageDiv = document.createElement("div");
@@ -71,13 +76,13 @@ export function chatHistory(data) {
       chatViewport.prepend(messageDiv);
     });
 
-    if (states.offset === 10) {
+    if (isFirstLoad) {
       chatViewport.scrollTop = chatViewport.scrollHeight;
     }
   } else if (
     data.Messages &&
     data.Messages.length === 0 &&
-    states.offset === 0
+    chatStates.lastID === 0
   ) {
     chatViewport.innerHTML = `
         <div class="empty-chat-state">
@@ -89,6 +94,6 @@ export function chatHistory(data) {
         </div>
         `;
   } else {
-    states.isEnd = true;
+    chatStates.isEnd = true;
   }
 }

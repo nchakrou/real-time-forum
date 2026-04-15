@@ -3,9 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"log"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"forum/backend"
@@ -25,14 +23,6 @@ func GetMyPostsHandler(db *sql.DB) http.HandlerFunc {
 		}
 		userId := user.ID
 
-		offsetstr := r.URL.Query().Get("offset")
-		offset, err := strconv.Atoi(offsetstr)
-		if err != nil {
-			backend.WriteJSONError(w, http.StatusBadRequest, "invalid offset")
-			log.Println("Error converting offset to integer:", err)
-			return
-		}
-
 		rows, err := db.Query(`
 			SELECT 
 				p.id, p.title, p.content, p.likes, p.dislikes, p.comments,
@@ -45,8 +35,7 @@ func GetMyPostsHandler(db *sql.DB) http.HandlerFunc {
 			WHERE p.user_id = ?
 			GROUP BY p.id
 			ORDER BY p.created_at DESC 
-			LIMIT 10 OFFSET ?
-		`, userId, userId, offset)
+		`, userId, userId)
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -56,10 +45,8 @@ func GetMyPostsHandler(db *sql.DB) http.HandlerFunc {
 
 		var posts = struct {
 			Posts []Post
-			IsEnd bool
 		}{
 			Posts: []Post{},
-			IsEnd: false,
 		}
 
 		for rows.Next() {
@@ -74,10 +61,6 @@ func GetMyPostsHandler(db *sql.DB) http.HandlerFunc {
 
 			post.Categories = strings.Split(category, ",")
 			posts.Posts = append(posts.Posts, post)
-		}
-
-		if len(posts.Posts) < 10 {
-			posts.IsEnd = true
 		}
 
 		w.Header().Set("Content-Type", "application/json")

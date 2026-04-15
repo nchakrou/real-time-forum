@@ -3,11 +3,14 @@ import { pagesInit } from "../components/pagesInit.js";
 import { ws } from "../core/WebSocket/initWs.js";
 import { router } from "../core/Router.js";
 import { Popup } from "../components/Popup.js";
-import { states } from "../core/Listeners/postListners.js";
+import { chatStates } from "../core/chatStates.js";
 import { throttle } from "../utils/throttle.js";
 import { updateUserList, formatTime } from "../utils/chatUtils.js";
-import { setCurrentOpenChat, clearCurrentOpenChat, restoreUnreadDots } from "../core/WebSocket/shownotification.js"; 
-
+import {
+  setCurrentOpenChat,
+  clearCurrentOpenChat,
+  restoreUnreadDots,
+} from "../core/WebSocket/shownotification.js";
 
 const chatPage = `
 ${Header}
@@ -68,13 +71,11 @@ ${Header}
 </main>
 `;
 
-
 export function chat() {
   document.body.innerHTML = chatPage;
   pagesInit("/chat");
 
   clearCurrentOpenChat();
-
 
   setTimeout(() => restoreUnreadDots(), 100);
 
@@ -100,7 +101,7 @@ function handleActiveChat(tagername) {
     JSON.stringify({
       type: "getChat",
       target: tagername,
-      offset: 0,
+      lastID: 0,
     }),
   );
 
@@ -131,14 +132,14 @@ function handleActiveChat(tagername) {
     "scroll",
     throttle(() => {
       if (document.getElementById("chat-viewport").scrollTop <= 50) {
-        if (states.isEnd) {
+        if (chatStates.isEnd) {
           return;
         }
         ws.send(
           JSON.stringify({
             type: "getChat",
             target: tagername,
-            offset: states.offset,
+            lastID: chatStates.lastID,
           }),
         );
       }
@@ -155,10 +156,12 @@ function sentBtn() {
 
     if (!isTyping) {
       isTyping = true;
-            ws.send(JSON.stringify({
+      ws.send(
+        JSON.stringify({
           type: "typing",
           target: target,
-            }));
+        }),
+      );
     }
 
     if (typingTimeout) {
@@ -167,10 +170,12 @@ function sentBtn() {
 
     typingTimeout = setTimeout(() => {
       isTyping = false;
-            ws.send(JSON.stringify({
+      ws.send(
+        JSON.stringify({
           type: "stop_typing",
           target: target,
-            }));
+        }),
+      );
     }, 2000);
   });
 
@@ -182,16 +187,19 @@ function sentBtn() {
       isTyping = false;
       clearTimeout(typingTimeout);
       const target = document.getElementById("active-chat-name").textContent;
-            ws.send(JSON.stringify({
+      ws.send(
+        JSON.stringify({
           type: "stop_typing",
           target: target,
-            }));
-        }        ws.send(
+        }),
+      );
+    }
+    ws.send(
       JSON.stringify({
         type: "message",
         target: document.getElementById("active-chat-name").textContent,
         message: message,
-            })
+      }),
     );
     messageInput.value = "";
     const chatViewport = document.getElementById("chat-viewport");

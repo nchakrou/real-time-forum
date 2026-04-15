@@ -7,12 +7,13 @@ import { likedPosts } from "../pages/likes.js";
 import { chat } from "../pages/chat.js";
 import { ErrorPage } from "../pages/Error.js";
 import { states } from "./Listeners/postListners.js";
+import { chatStates } from "./chatStates.js";
 import { ws } from "./WebSocket/initWs.js";
 
 export function router(path) {
   states.path = path;
-  states.offset = 0;
-  states.isEnd = false;
+  chatStates.lastID = 0;
+  chatStates.isEnd = false;
   history.pushState("", "", path);
   path = window.location.pathname;
   if (path === "/register") {

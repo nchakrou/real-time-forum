@@ -11,23 +11,12 @@ export const postButtons = {
 };
 
 export const states = {
-  offset: 0,
   path: "",
-  isEnd: false,
 };
 
 export async function fetchPosts(path) {
-  if (states.isEnd) return;
-
-  const isFirstLoad = states.offset === 0;
-
   try {
-    let fetchPath = path;
-    const url = new URL(path, window.location.origin);
-    url.searchParams.set("offset", states.offset);
-    fetchPath = url.pathname + url.search;
-
-    const response = await fetch(fetchPath, {
+    const response = await fetch(path, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -41,9 +30,7 @@ export async function fetchPosts(path) {
 
     if (response.ok) {
       const posts = await response.json();
-      states.offset += 10;
-      states.isEnd = posts.IsEnd;
-      createpostsContainer(posts.Posts, isFirstLoad);
+      createpostsContainer(posts.Posts, true);
     } else {
       throw new Error(response);
     }
@@ -109,10 +96,6 @@ export function createpostsContainer(posts, isFirstLoad = false) {
   <div class="comments">
   </div>
 
-  <button type="button" class="load-more-comments hidden">
-    Load more comments
-  </button>
-
   <div class="comments-section">
     <input type="text" class="comment-input" placeholder="Add a comment...">
     <button type="submit" class="Submit_comment">
@@ -121,7 +104,7 @@ export function createpostsContainer(posts, isFirstLoad = false) {
   </div>
 
 </div>
-        `
+        `,
       );
 
       postsContainer.appendChild(postElement);
@@ -186,7 +169,6 @@ async function submitCommentListener(e) {
 
     const data = await res.json();
 
-
     if (data.status === "ok") {
       commentInput.value = "";
 
@@ -194,12 +176,8 @@ async function submitCommentListener(e) {
 
       commentBtn.textContent = data.comments;
 
-      post.dataset.commentOffset = 0;
       const commentsContainer = post.querySelector(".comments");
       commentsContainer.innerHTML = "";
-
-      const loadMoreBtn = post.querySelector(".load-more-comments");
-      loadMoreBtn.classList.add("hidden");
 
       await loadComments(post);
       commentsContainer.scrollTop = commentsContainer.scrollHeight;
@@ -236,7 +214,6 @@ async function commentListener(e) {
   const isHidden = section.classList.toggle("hidden");
 
   if (!isHidden) {
-    post.dataset.commentOffset = 0;
     post.querySelector(".comments").innerHTML = "";
     await loadComments(post);
   }
@@ -244,18 +221,14 @@ async function commentListener(e) {
 
 async function loadComments(post) {
   const commentsContainer = post.querySelector(".comments");
-  const loadMoreBtn = post.querySelector(".load-more-comments");
   const postId = post.dataset.postId;
-  let offset = parseInt(post.dataset.commentOffset || 0);
 
   try {
-    const res = await fetch(`/api/comments?post_id=${postId}&offset=${offset}&limit=10`);
+    const res = await fetch(`/api/comments?post_id=${postId}`);
     if (!res.ok) throw new Error("Failed to fetch comments");
     const comments = await res.json();
     if (!comments || comments.length === 0) {
-      if (offset === 0) {
-        commentsContainer.innerHTML = "<p>No comments yet</p>";
-      }
+      commentsContainer.innerHTML = "<p>No comments yet</p>";
       return;
     }
     comments.forEach((c) => {
@@ -267,21 +240,11 @@ async function loadComments(post) {
       `;
       commentsContainer.appendChild(newComment);
     });
-
-    post.dataset.commentOffset = offset + comments.length;
-
-    if (comments.length === 10) {
-      loadMoreBtn.classList.remove("hidden");
-    } else {
-      loadMoreBtn.classList.add("hidden");
-    }
-
   } catch (err) {
     console.error("Error loading comments:", err);
   }
 }
 async function loadMoreComments(e) {
-
   const post = e.target.closest(".post");
   const commentsContainer = post.querySelector(".comments");
   const previousScrollHeight = commentsContainer.scrollHeight;
@@ -290,5 +253,4 @@ async function loadMoreComments(e) {
 
   const newScrollHeight = commentsContainer.scrollHeight;
   commentsContainer.scrollTop += newScrollHeight - previousScrollHeight;
-
 }

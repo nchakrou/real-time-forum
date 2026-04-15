@@ -9,6 +9,7 @@ import (
 )
 
 type Msg struct {
+	ID        int    `json:"id"`
 	Type      string `json:"type"`
 	From      string `json:"from"`
 	Message   string `json:"message,omitempty"`
@@ -107,7 +108,7 @@ func TargetID(db *sql.DB, username string) (int, error) {
 	return id, nil
 }
 
-func (hub *Hub) GetMessages(db *sql.DB, fromID int, toUsername string, conn *websocket.Conn, fromUsername string, offset int) {
+func (hub *Hub) GetMessages(db *sql.DB, fromID int, toUsername string, conn *websocket.Conn, fromUsername string, lastID int) {
 
 	toID, err := TargetID(db, toUsername)
 	if err != nil {
@@ -125,15 +126,23 @@ WHERE sender_id = ? AND receiver_id = ? AND type = 'message'
 		log.Println("Error updating notifications:", err)
 	}
 
-	rows, err := db.Query(`
-	select u.nickname, m.content, m.created_at 
+	query := `
+	select m.id, u.nickname, m.content, m.created_at 
 	from messages m 
 	join users u on m.sender_id = u.id 
-	where (m.sender_id = ? AND m.receiver_id = ?) 
-	OR (m.sender_id = ? AND m.receiver_id = ?) 
-	ORDER BY m.created_at DESC 
-	LIMIT 10 OFFSET ?`,
-		fromID, toID, toID, fromID, offset)
+	where ((m.sender_id = ? AND m.receiver_id = ?) 
+	OR (m.sender_id = ? AND m.receiver_id = ?))`
+
+	args := []interface{}{fromID, toID, toID, fromID}
+
+	if lastID > 0 {
+		query += " AND m.id < ?"
+		args = append(args, lastID)
+	}
+
+	query += " ORDER BY m.id DESC LIMIT 10"
+
+	rows, err := db.Query(query, args...)
 
 	if err != nil {
 		log.Println("Error getting messages:", err)
@@ -145,7 +154,7 @@ WHERE sender_id = ? AND receiver_id = ? AND type = 'message'
 
 	for rows.Next() {
 		var msg Msg
-		if err := rows.Scan(&msg.From, &msg.Message, &msg.CreatedAt); err != nil {
+		if err := rows.Scan(&msg.ID, &msg.From, &msg.Message, &msg.CreatedAt); err != nil {
 			log.Println("Error scanning message:", err)
 			continue
 		}

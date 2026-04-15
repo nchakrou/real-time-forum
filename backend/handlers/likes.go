@@ -22,7 +22,6 @@ type LikeResponse struct {
 
 func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("like")
 		if r.Method != http.MethodPost {
 			backend.WriteJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
 			return
