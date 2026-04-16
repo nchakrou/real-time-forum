@@ -7,13 +7,13 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 )
 
 type post struct {
 	Title      string `json:"title"`
 	Content    string `json:"content"`
 	Categories []int  `json:"categories"`
-	IsEnd      bool   `json:"is_end"`
 }
 
 func CreatePostHandler(db *sql.DB) http.HandlerFunc {
@@ -42,6 +42,11 @@ func CreatePostHandler(db *sql.DB) http.HandlerFunc {
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			log.Println("Error getting user ID from request:", err)
+			return
+		}
+		if strings.TrimSpace(postData.Title) == "" || strings.TrimSpace(postData.Content) == "" {
+			backend.WriteJSONError(w, http.StatusBadRequest, "Please fill in all the fields.")
+			log.Println("Empty title or content")
 			return
 		}
 		res, err := db.Exec("INSERT INTO posts (user_id, title, content) VALUES (?, ?, ?)", userid, postData.Title, postData.Content)

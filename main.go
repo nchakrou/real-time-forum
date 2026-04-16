@@ -14,10 +14,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type login struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
 
 func main() {
 	db, err := backend.InitDB("forum.db")
@@ -50,29 +46,25 @@ func main() {
 
 		http.ServeFile(w, r, r.URL.Path[1:])
 	})
-	
+
 	http.HandleFunc("/api/login", auth.LoginHandler(db))
 	http.HandleFunc("/api/register", auth.RegisterHandler(db))
 	http.HandleFunc("/api/islogged", auth.IsLogged(db))
 	http.HandleFunc("/api/logout", auth.Logout(db))
-
 
 	http.HandleFunc("/api/liked-posts", backend.Middleware(db, handlers.HandleLikedPosts(db)))
 	http.HandleFunc("/api/posts", backend.Middleware(db, handlers.GetPostsHandler(db)))
 	http.HandleFunc("/api/createpost", backend.Middleware(db, handlers.CreatePostHandler(db)))
 	http.HandleFunc("/api/myposts", backend.Middleware(db, handlers.GetMyPostsHandler(db)))
 
-
 	http.HandleFunc("/api/like", backend.Middleware(db, handlers.HandleLike(db, "post")))
 	http.HandleFunc("/api/like-comment", backend.Middleware(db, handlers.HandleLike(db, "comment")))
 	http.HandleFunc("/api/add-comment", backend.Middleware(db, handlers.HandleAddComment(db)))
 	http.HandleFunc("/api/comments", backend.Middleware(db, handlers.HandleGetComments(db)))
 
-
 	http.HandleFunc("/ws", backend.Middleware(db, Websocket.WsHandler(db, hub)))
 
 	fmt.Println("Server started at http://localhost:8081")
 	log.Fatal(http.ListenAndServe(":8081", nil))
-
 
 }

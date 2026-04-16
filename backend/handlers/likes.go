@@ -3,7 +3,6 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -11,7 +10,7 @@ import (
 )
 
 type LikeRequest struct {
-	Value int `json:"value"` 
+	Value int `json:"value"`
 }
 
 type LikeResponse struct {
@@ -151,7 +150,6 @@ func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 			Dislikes:  dislikes,
 			UserValue: userValue,
 		}
-		fmt.Println(resp)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
 	}

@@ -3,7 +3,6 @@ package Websocket
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -97,7 +96,6 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 				log.Println("Error unmarshaling message:", err)
 				break
 			}
-			fmt.Println(req)
 			switch req.Type {
 			case "online_users":
 				hub.OnlineUsers(db, userid, conn)

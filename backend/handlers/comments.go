@@ -67,15 +67,15 @@ func HandleAddComment(db *sql.DB) http.HandlerFunc {
 			"SELECT COUNT(*) FROM comments WHERE post_id = ?",
 			postID,
 		).Scan(&commentsCount)
-		
+
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-			_, _ = db.Exec(
+		_, _ = db.Exec(
 			"UPDATE posts SET comments = ? WHERE id = ?",
 			commentsCount, postID,
-		)	
+		)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status":   "ok",
 			"comments": commentsCount,
