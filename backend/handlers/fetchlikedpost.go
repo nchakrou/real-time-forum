@@ -35,7 +35,7 @@ func HandleLikedPosts(db *sql.DB) http.HandlerFunc {
 			backend.WriteJSONError(w, http.StatusUnauthorized, "login required")
 			return
 		}
-
+		//This query retrieves all posts liked by a specific user.
 		query := `
             SELECT p.id, p.title, p.content, p.user_id, u.nickname, p.created_at, p.likes, p.dislikes, p.comments, l.value as userValue,
                    GROUP_CONCAT(c.name) AS categories

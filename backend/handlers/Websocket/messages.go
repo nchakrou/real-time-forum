@@ -3,6 +3,7 @@ package Websocket
 import (
 	"database/sql"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -108,11 +109,21 @@ func TargetID(db *sql.DB, username string) (int, error) {
 	return id, nil
 }
 
-func (hub *Hub) GetMessages(db *sql.DB, fromID int, toUsername string, conn *websocket.Conn, fromUsername string, lastID int) {
+func (hub *Hub) GetMessages(w http.ResponseWriter, db *sql.DB, fromID int, toUsername string, conn *websocket.Conn, fromUsername string, lastID int) {
 
 	toID, err := TargetID(db, toUsername)
 	if err != nil {
 		log.Println("Error getting target ID:", err)
+		conn.WriteJSON(struct {
+			Type    string `json:"type"`
+			Message string `json:"message"`
+			Code    int    `json:"code"`
+		}{
+			Type:    "error",
+			Code:    404,
+			Message: "user not found",
+		})
+
 		return
 	}
 
@@ -124,6 +135,16 @@ WHERE sender_id = ? AND receiver_id = ? AND type = 'message'
 
 	if err != nil {
 		log.Println("Error updating notifications:", err)
+		conn.WriteJSON(struct {
+			Type    string `json:"type"`
+			Message string `json:"message"`
+			Code    int    `json:"code"`
+		}{
+			Type:    "error",
+			Code:    500,
+			Message: "internal server error",
+		})
+		return
 	}
 
 	query := `
@@ -146,6 +167,15 @@ WHERE sender_id = ? AND receiver_id = ? AND type = 'message'
 
 	if err != nil {
 		log.Println("Error getting messages:", err)
+		conn.WriteJSON(struct {
+			Type    string `json:"type"`
+			Message string `json:"message"`
+			Code    int    `json:"code"`
+		}{
+			Type:    "error",
+			Code:    500,
+			Message: "internal server error",
+		})
 		return
 	}
 	defer rows.Close()

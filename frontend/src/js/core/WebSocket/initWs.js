@@ -9,6 +9,7 @@ import {
 import { Popup } from "../../components/Popup.js";
 import { updateUserList } from "../../utils/chatUtils.js";
 import { router } from "../Router.js";
+import { ErrorPage } from "../../pages/Error.js";
 
 export let ws;
 export let currentChatUser = null;
@@ -41,8 +42,14 @@ export function OpenWS() {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log("Message from server:", data);
-console.log(data.type);
-
+      if (data.type === "error") {
+        if (data.code === 404 || data.code === 500) {
+          ErrorPage();
+        } else {
+          Popup.show(data.message);
+        }
+        return;
+      }
       switch (data.type) {
         case "online_users":
           OnlineUsers(data.users);
@@ -70,10 +77,9 @@ console.log(data.type);
           handleTypingStatus(data);
           break;
         case "user_offline":
-                    
           if (window.location.pathname !== "/chat") {
-              console.log(data.from);
-              
+            console.log(data.from);
+
             const userItem = document.querySelector(
               `.user-item[data-username="${data.from}"]`,
             );
@@ -142,8 +148,9 @@ function handleJoin(data) {
 }
 
 function handleTypingStatus(data) {
-
-  const currentChat = new URLSearchParams(window.location.search).get("username");
+  const currentChat = new URLSearchParams(window.location.search).get(
+    "username",
+  );
   if (window.location.pathname === "/chat" && currentChat === data.from) {
     const typingIndicator = document.getElementById("typing-indicator");
     if (typingIndicator) {

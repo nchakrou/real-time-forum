@@ -3,6 +3,7 @@ package Websocket
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -102,7 +103,8 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 			case "message":
 				hub.SendPrivateMessage(db, userid, req.Target, req.Message, user.Nickname)
 			case "getChat":
-				hub.GetMessages(db, userid, req.Target, conn, user.Nickname, req.LastID)
+				fmt.Println("getChat", req.Target)
+				hub.GetMessages(w, db, userid, req.Target, conn, user.Nickname, req.LastID)
 			case "get_notifications":
 				hub.GetNotifications(db, userid, conn)
 			case "get_chat_users":
