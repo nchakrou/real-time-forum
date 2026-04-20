@@ -17,12 +17,13 @@ export function router(path) {
   history.pushState("", "", path);
   path = window.location.pathname;
   if (path === "/register") {
+    if (ws && ws.readyState !== WebSocket.CLOSED) ws.close();
     register();
-  } else if (path === "/") {
-    home();
   } else if (path === "/login") {
     if (ws && ws.readyState !== WebSocket.CLOSED) ws.close();
     login();
+  } else if (path === "/") {
+    home();
   } else if (path === "/createpost") {
     createPost();
   } else if (path === "/myPosts") {

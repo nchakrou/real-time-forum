@@ -82,10 +82,9 @@ export function OnlineUsers(users) {
     users.forEach((user) => {
       const div = document.querySelector(`.user-item[data-username="${user}"]`);
       if (div) {
-       div.classList.add("online");
+        div.classList.add("online");
       }
     });
-    
   }
   const usersContainer = document.querySelector(".online-users");
   if (!usersContainer) return;
@@ -125,7 +124,13 @@ export function OnlineUsers(users) {
 export function ChatUsers(chats) {
   const usersContainer = document.querySelector(".users");
   if (!usersContainer) return;
-
+  if (document.getElementById("no-chats")) {
+    document.getElementById("no-chats").remove();
+  }
+  let users = false;
+  if (document.querySelector(".list-users")) {
+    users = true;
+  }
   if (!chats || chats.length === 0) {
     const noChats = document.createElement("p");
     noChats.style.marginTop = "20px";
@@ -142,9 +147,13 @@ export function ChatUsers(chats) {
     usersContainer.appendChild(noChats);
     return;
   }
-
-  const listUsers = document.createElement("div");
-  listUsers.className = "list-users";
+  let listUsers;
+  if (!users) {
+    listUsers = document.createElement("div");
+    listUsers.className = "list-users";
+  } else {
+    listUsers = document.querySelector(".list-users");
+  }
 
   chats.forEach(({ target }) => {
     const userItem = document.createElement("div");

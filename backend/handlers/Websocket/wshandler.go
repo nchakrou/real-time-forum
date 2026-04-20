@@ -74,9 +74,13 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 					break
 				}
 			}
-			hub.mu.Unlock()
-			if len(hub.Clients[userid]) == 0 {
+			isEmpty := len(hub.Clients[userid]) == 0
+			if isEmpty {
 				delete(hub.Clients, userid)
+
+			}
+			hub.mu.Unlock()
+			if isEmpty {
 				hub.Leave(db, user)
 			}
 			log.Printf("User %d disconnected", userid)
@@ -113,6 +117,14 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 				hub.SendTypingStatus(db, userid, req.Target, user.Nickname, true)
 			case "stop_typing":
 				hub.SendTypingStatus(db, userid, req.Target, user.Nickname, false)
+			case "logout":
+				hub.mu.Lock()
+				conns := append([]*websocket.Conn(nil), hub.Clients[userid]...)
+				hub.mu.Unlock()
+
+				for _, c := range conns {
+					c.Close()
+				}
 			}
 		}
 	}
@@ -120,17 +132,23 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 
 func (h *Hub) Leave(db *sql.DB, user backend.User) {
 	h.mu.Lock()
+
+	var allConns []*websocket.Conn
 	for _, conns := range h.Clients {
-		for _, conn := range conns {
-			log.Printf("Sending offline message to user %d", user.ID)
-			err := conn.WriteJSON(response{
+		allConns = append(allConns, conns...)
+	}
+
+	h.mu.Unlock()
+
+	for _, conn := range allConns {
+		go func(c *websocket.Conn) {
+			err := c.WriteJSON(response{
 				Type: "user_offline",
 				From: user.Nickname,
 			})
 			if err != nil {
-				log.Println("Error sending message to user:", err)
+				log.Println("Error sending message:", err)
 			}
-		}
+		}(conn)
 	}
-	h.mu.Unlock()
 }

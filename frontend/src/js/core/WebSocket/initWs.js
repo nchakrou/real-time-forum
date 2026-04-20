@@ -71,6 +71,16 @@ export function OpenWS() {
         case "join":
           if (window.location.pathname !== "/chat") {
             handleJoin(data);
+          } else {
+            const userItem = document.querySelector(
+              `.user-item[data-username="${data.from}"]`,
+            );
+            if (userItem) {
+              userItem.classList.add("online");
+            } else {
+              console.log("user not found", data.from);
+              ChatUsers([{ target: data.from }]);
+            }
           }
           break;
         case "typing":
@@ -78,13 +88,18 @@ export function OpenWS() {
           break;
         case "user_offline":
           if (window.location.pathname !== "/chat") {
-            console.log(data.from);
-
             const userItem = document.querySelector(
               `.user-item[data-username="${data.from}"]`,
             );
             if (userItem) {
               userItem.remove();
+            }
+          } else {
+            const userItem = document.querySelector(
+              `.user-item[data-username="${data.from}"]`,
+            );
+            if (userItem) {
+              userItem.classList.remove("online");
             }
           }
           break;

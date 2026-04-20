@@ -78,7 +78,7 @@ func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 				userID, id, req.Value,
 			)
 			if err != nil {
-				http.Error(w, "Database error", http.StatusInternalServerError)
+				backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
 				return
 			}
 			userValue = req.Value
@@ -91,7 +91,7 @@ func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 					userID, id,
 				)
 				if err != nil {
-					http.Error(w, "Database error", http.StatusInternalServerError)
+					backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
 					return
 				}
 				userValue = 0
@@ -103,7 +103,7 @@ func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 					req.Value, userID, id,
 				)
 				if err != nil {
-					http.Error(w, "Database error", http.StatusInternalServerError)
+					backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
 					return
 				}
 				userValue = req.Value
@@ -137,7 +137,7 @@ func HandleLike(db *sql.DB, target string) http.HandlerFunc {
 				likes, dislikes, id,
 			)
 			if err != nil {
-				http.Error(w, "Database error", http.StatusInternalServerError)
+				backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
 				return
 			}
 		}

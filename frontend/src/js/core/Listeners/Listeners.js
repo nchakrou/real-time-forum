@@ -23,6 +23,7 @@ export const headerButtonsRoutes = {
       Popup.show("Connection error. Please try again.");
       return;
     } finally {
+      ws.send(JSON.stringify({ type: "logout" }));
       ws.close();
       init("/login");
     }

@@ -1,8 +1,6 @@
-import { fetchPosts, states } from "../core/Listeners/postListners.js";
-import { throttle } from "../utils/throttle.js";
+import { fetchPosts } from "../core/Listeners/postListners.js";
 import { Header } from "../components/Header.js";
 import { pagesInit } from "../components/pagesInit.js";
-import { Popup } from "../components/Popup.js";
 
 const homePage = `
 ${Header}
@@ -58,23 +56,5 @@ export function home() {
     fetchPosts(`/api/posts?category=${category}`);
   } else {
     fetchPosts("/api/posts");
-  }
-
-  // Infinite Scroll Listener
-  const postsContainer = document.querySelector(".posts");
-  if (postsContainer) {
-    postsContainer.addEventListener(
-      "scroll",
-      throttle(() => {
-        const { scrollTop, scrollHeight, clientHeight } = postsContainer;
-
-        if (scrollTop + clientHeight >= scrollHeight - 200) {
-          const path = category
-            ? `/api/posts?category=${category}`
-            : "/api/posts";
-          fetchPosts(path);
-        }
-      }, 200),
-    );
   }
 }

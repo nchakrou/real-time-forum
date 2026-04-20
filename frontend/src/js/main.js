@@ -11,7 +11,6 @@ export const routes = {
 };
 
 export async function init(path) {
-  
   const pathname = path || window.location.pathname;
   if (!path) {
     path = window.location.pathname + window.location.search;
@@ -27,6 +26,8 @@ export async function init(path) {
     }
     if (pathname === "/register" || pathname === "/login") {
       router("/");
+    } else if (!routes[pathname]) {
+      ErrorPage("404 Not Found", "404");
     } else {
       router(path);
     }
