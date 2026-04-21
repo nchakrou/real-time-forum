@@ -9,8 +9,10 @@ import { ErrorPage } from "../pages/Error.js";
 import { states } from "./Listeners/postListners.js";
 import { chatStates } from "./chatStates.js";
 import { ws } from "./WebSocket/initWs.js";
+import { clearCurrentOpenChat } from "./WebSocket/shownotification.js";
 
 export function router(path) {
+  clearCurrentOpenChat()
   states.path = path;
   chatStates.lastID = 0;
   chatStates.isEnd = false;

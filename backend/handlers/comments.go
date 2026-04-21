@@ -34,6 +34,11 @@ func HandleAddComment(db *sql.DB) http.HandlerFunc {
 			backend.WriteJSONError(w, http.StatusBadRequest, "Please write something before posting your comment.")
 			return
 		}
+		if len(content) > 200 || len(content) <= 0 {
+			backend.WriteJSONError(w, http.StatusBadRequest, "Comments length must be under 200")
+			return
+
+		}
 
 		postID, err := strconv.Atoi(postIDstr)
 		if err != nil {
@@ -67,7 +72,6 @@ func HandleAddComment(db *sql.DB) http.HandlerFunc {
 			"SELECT COUNT(*) FROM comments WHERE post_id = ?",
 			postID,
 		).Scan(&commentsCount)
-
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return

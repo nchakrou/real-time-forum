@@ -31,13 +31,20 @@ export function OpenWS() {
 
     ws = new WebSocket("ws://localhost:8081/ws");
 
-    ws.onopen = () => {
-      console.log("Connected to WebSocket server");
-      ws.send(JSON.stringify({ type: "get_notifications" }));
-      renderStoredNotifications();
-
-      resolve();
-    };
+   ws.onopen = () => {
+  console.log("Connected to WebSocket server");
+  ws.send(JSON.stringify({ type: "get_notifications" }));
+  renderStoredNotifications();
+  resolve();
+};
+ws.onmessage = (event) => {
+  try {
+    const data = JSON.parse(event.data);
+    storeNotification(data);
+  } catch (e) {
+    console.error("Invalid WS message:", e);
+  }
+};
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);

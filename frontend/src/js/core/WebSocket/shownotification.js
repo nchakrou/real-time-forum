@@ -32,7 +32,10 @@ function markChatAsUnread(username) {
 }
 
 export function showNotification(data, showToast = true) {
+   
+    
     if (currentOpenChat === data.from) return;
+
 
     markChatAsUnread(data.from);
     storeNotification(data, showToast);
@@ -81,7 +84,11 @@ export function restoreUnreadDots() {
 }
 
 function isOnChatPage() {
-    return window.location.pathname.startsWith("/chat");
+    console.log("hello");
+    
+   return window.location.href.includes("/chat");
+    console.log("hello");
+    
 }
 
 function enqueueToast(data) {
@@ -148,9 +155,7 @@ function displayToast(data, callback) {
     autoTimer = setTimeout(() => dismiss(false), 5000);
 }
 
-// ✅ عدلت هذه - تخزن في memory أولاً ثم الـ DOM
 export function storeNotification(data, showToast = true) {
-    // خزن في الـ memory
     const existing = notificationStore.get(data.from);
     if (existing) {
         existing.count += 1;

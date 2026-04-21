@@ -146,8 +146,8 @@ func (h *Hub) Leave(db *sql.DB, user backend.User) {
 				Type: "user_offline",
 				From: user.Nickname,
 			})
-			if err != nil {
-				log.Println("Error sending message:", err)
+		if err != nil {
+				log.Println("Error sending message:", err)	
 			}
 		}(conn)
 	}

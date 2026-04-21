@@ -99,7 +99,7 @@ export function createpostsContainer(posts, isFirstLoad = false) {
   </div>
 
   <div class="comments-section">
-    <input type="text" class="comment-input" placeholder="Add a comment...">
+    <input type="text" class="comment-input" placeholder="Add a comment..." maxlength="200">
     <button type="submit" class="Submit_comment">
       <img src="/frontend/src/assets/send.svg">
     </button>

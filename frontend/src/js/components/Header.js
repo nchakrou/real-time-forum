@@ -37,9 +37,7 @@ export const Header = `
                     </div>
                     <div id="notification-list" class="notification-list">
                     </div>
-                    <div class="notification-dropdown-footer">
-                        <a href="#" id="view-all-notifications">View all notifications</a>
-                    </div>
+                   
                 </div>
             </div>
            
