@@ -72,8 +72,17 @@ function createPostCategoriesListener() {
 }
 function handleCreatePost() {
   document.getElementById("submitpost").addEventListener("click", async () => {
+    if (!document.getElementById("post")){
+      Popup.show("Post title is required.");
+      return;
+    }
+    if (!document.getElementById("content")){
+      Popup.show("Post content is required.");
+      return;
+    }
     const title = document.getElementById("post").value;
     const content = document.getElementById("content").value;
+  
     const CategoriesElements = document.querySelectorAll(
       "#CreatePostCategories .active",
     );
@@ -81,7 +90,7 @@ function handleCreatePost() {
       Number(el.dataset.id),
     );
 
-    if (!title || !content || selectedCategories.length === 0) {
+    if (!title || !content || selectedCategories.length === 0||title.trim() === "" || content.trim() === "") {
       Popup.show("Please fill in all fields and select at least one category.");
       return;
     }
