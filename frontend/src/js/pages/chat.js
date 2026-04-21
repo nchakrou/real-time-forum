@@ -60,7 +60,7 @@ ${Header}
             <div class="chat-input-row">
 
                 <div class="input-container">
-                    <textarea id="chat-message-input" placeholder="Write something..." rows="1"></textarea>
+                    <textarea id="chat-message-input" placeholder="Write something..." rows="1" maxlength="1000"></textarea>
                 </div>
                 <button id="chat-send-btn" class="chat-send-btn" title="Send message">
                     <img src="/frontend/src/assets/send.svg" alt="Send">

@@ -3,10 +3,11 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"forum/backend"
 	"log"
 	"net/http"
 	"strings"
+
+	"forum/backend"
 )
 
 type Post struct {
@@ -18,6 +19,16 @@ type Post struct {
 	Comments   int      `json:"comments"`
 	Categories []string `json:"categories"`
 	UserValue  int      `json:"userValue"`
+}
+
+var categories = map[string]bool{
+	"FPS":           true,
+	"Battle Royale": true,
+	"MOBA":          true,
+	"Esports":       true,
+	"RPG":           true,
+	"Strategy":      true,
+	"Simulation":    true,
 }
 
 func GetPostsHandler(db *sql.DB) http.HandlerFunc {
@@ -52,8 +63,12 @@ func GetPostsHandler(db *sql.DB) http.HandlerFunc {
 				GROUP BY p.id 
 				ORDER BY p.created_at DESC
 			`, userID)
-
 		} else {
+			if !categories[category] {
+				backend.WriteJSONError(w, http.StatusBadRequest, "Invalid category")
+				log.Println("Invalid category:", category)
+				return
+			}
 			rows, err = db.Query(`
 				SELECT 
 					p.id, p.title, p.content, p.likes, p.dislikes, p.comments,
@@ -81,7 +96,7 @@ func GetPostsHandler(db *sql.DB) http.HandlerFunc {
 		}
 		defer rows.Close()
 
-		var posts = struct {
+		posts := struct {
 			Posts []Post
 		}{
 			Posts: []Post{},

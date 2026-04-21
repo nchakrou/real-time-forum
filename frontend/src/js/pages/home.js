@@ -1,6 +1,7 @@
 import { fetchPosts } from "../core/Listeners/postListners.js";
 import { Header } from "../components/Header.js";
 import { pagesInit } from "../components/pagesInit.js";
+import { ErrorPage } from "./Error.js";
 
 const homePage = `
 ${Header}
@@ -54,7 +55,9 @@ export function home() {
   if (categoryElement) {
     categoryElement.classList.add("active");
     fetchPosts(`/api/posts?category=${category}`);
-  } else {
+  } else if (category) {
+    ErrorPage();
+  }else {
     fetchPosts("/api/posts");
   }
 }

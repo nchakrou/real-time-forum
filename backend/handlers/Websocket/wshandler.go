@@ -105,7 +105,7 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 			case "online_users":
 				hub.OnlineUsers(db, userid, conn)
 			case "message":
-				hub.SendPrivateMessage(db, userid, req.Target, req.Message, user.Nickname)
+				hub.SendPrivateMessage(conn, db, userid, req.Target, req.Message, user.Nickname)
 			case "getChat":
 				fmt.Println("getChat", req.Target)
 				hub.GetMessages(w, db, userid, req.Target, conn, user.Nickname, req.LastID)

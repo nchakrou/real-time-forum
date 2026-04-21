@@ -5,6 +5,7 @@ export function message(data) {
   const currentChat = new URLSearchParams(window.location.search).get(
     "username",
   );
+
   if (window.location.pathname === "/chat") {
     updateUserList(data.from);
   }

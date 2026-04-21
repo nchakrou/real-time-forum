@@ -30,11 +30,11 @@ const createPostPage = `${Header}
   <h2>Create Post</h2>
   <div class = "postTitle">
   <p>Post Title</p>
-  <input type = "text" id = "post" >
+  <input type = "text" id = "post" maxlength="100">
   </div>
   <div class = "postContent">
   <p>Post Content</p>
-  <textarea id = "content"></textarea>
+  <textarea id = "content" maxlength="1000"></textarea>
   </div>
   <div class = "postCategory">
   <p>Post Category</p>

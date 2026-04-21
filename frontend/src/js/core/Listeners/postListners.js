@@ -15,6 +15,8 @@ export const states = {
 };
 
 export async function fetchPosts(path) {
+  console.log("ok");
+  
   try {
     const response = await fetch(path, {
       method: "GET",

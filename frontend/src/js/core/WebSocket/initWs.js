@@ -7,7 +7,7 @@ import {
   renderStoredNotifications,
 } from "../WebSocket/shownotification.js";
 import { Popup } from "../../components/Popup.js";
-import { updateUserList } from "../../utils/chatUtils.js";
+import { updateUserList,formatTime } from "../../utils/chatUtils.js";
 import { router } from "../Router.js";
 import { ErrorPage } from "../../pages/Error.js";
 
@@ -118,6 +118,29 @@ function handlePrivateMessage(data) {
   const currentChat = new URLSearchParams(window.location.search).get(
     "username",
   );
+    if (data.to){
+      if (window.location.pathname === "/chat" && currentChat === data.to) {
+        const chatViewport = document.getElementById("chat-viewport");
+        if (!chatViewport) return;
+        const div = document.createElement("div");
+        div.classList.add("Mymessage");
+        const h4 = document.createElement("h4");
+        h4.textContent = "Me";
+        const p = document.createElement("p");
+        p.textContent = data.message;
+  
+        const timeSpan = document.createElement("span");
+        timeSpan.classList.add("message-time");
+        timeSpan.textContent = formatTime(data.CreatedAt);
+  
+        div.appendChild(h4);
+        div.appendChild(p);
+        div.appendChild(timeSpan);
+        chatViewport.appendChild(div);
+        chatViewport.scrollTop = chatViewport.scrollHeight;
+      }
+      return
+    }
   if (window.location.pathname === "/chat") {
     updateUserList(data.from);
   }

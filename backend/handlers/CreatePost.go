@@ -3,11 +3,12 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"forum/backend"
 	"io"
 	"log"
 	"net/http"
 	"strings"
+
+	"forum/backend"
 )
 
 type post struct {
@@ -18,7 +19,6 @@ type post struct {
 
 func CreatePostHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		if r.Method != http.MethodPost {
 			backend.WriteJSONError(w, http.StatusMethodNotAllowed, "method not allowed")
 			log.Println("Method not allowed")
@@ -49,6 +49,16 @@ func CreatePostHandler(db *sql.DB) http.HandlerFunc {
 			log.Println("Empty title or content")
 			return
 		}
+		if len(postData.Title) > 100 || len(postData.Content) > 1000 {
+			backend.WriteJSONError(w, http.StatusBadRequest, "Title must be less than 100 characters and content must be less than 1000 characters.")
+			log.Println("Title or content too long")
+			return
+		}
+		if len(postData.Categories) == 0 {
+			backend.WriteJSONError(w, http.StatusBadRequest, "Please select at least one category for your post.")
+			log.Println("No categories selected")
+			return
+		}
 		res, err := db.Exec("INSERT INTO posts (user_id, title, content) VALUES (?, ?, ?)", userid, postData.Title, postData.Content)
 		if err != nil {
 			backend.WriteJSONError(w, http.StatusInternalServerError, "something went wrong. Please try again later.")
@@ -69,7 +79,6 @@ func CreatePostHandler(db *sql.DB) http.HandlerFunc {
 				return
 			}
 			_, err = db.Exec("INSERT INTO post_categories (post_id, category_id) VALUES (?, ?)", postID, categoryID)
-
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				log.Println("Error inserting post category into database:", err)
@@ -77,6 +86,5 @@ func CreatePostHandler(db *sql.DB) http.HandlerFunc {
 			}
 		}
 		w.WriteHeader(http.StatusCreated)
-
 	}
 }
