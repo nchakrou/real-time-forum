@@ -236,10 +236,16 @@ async function loadComments(post) {
     comments.forEach((c) => {
       const newComment = document.createElement("div");
       newComment.classList.add("comment");
-      newComment.innerHTML = `
-        <span class="comment-user">${c.username}</span>
-        <span class="comment-text">${c.content}</span>
-      `;
+      const userSpan = document.createElement("span");
+      userSpan.classList.add("comment-user");
+      userSpan.textContent = c.username;
+      
+      const textSpan = document.createElement("span");
+      textSpan.classList.add("comment-text");
+      textSpan.textContent = c.content;
+      
+      newComment.appendChild(userSpan);
+      newComment.appendChild(textSpan);
       commentsContainer.appendChild(newComment);
     });
   } catch (err) {

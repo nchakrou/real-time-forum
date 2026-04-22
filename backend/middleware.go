@@ -2,7 +2,10 @@ package backend
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
+	"strings"
+	"time"
 )
 
 type User struct {
@@ -10,23 +13,36 @@ type User struct {
 	Nickname string `json:"nickname"`
 }
 
-func GetUserIDFromRequest(DB *sql.DB, r *http.Request) (User, error) {
-	c, err := r.Cookie("session_token")
-	var user User
-	if err != nil {
-		return user, err
-	}
-	token := c.Value
+var (
+	ErrNoSession      = errors.New("no session found")
+	ErrInvalidSession = errors.New("invalid or expired session")
+)
 
-	err = DB.QueryRow(
-		`SELECT s.user_id, u.nickname
-FROM sessions s
-JOIN users u ON s.user_id = u.id
-WHERE s.token = ? AND s.expires_at > datetime('now');
-`,
-		token,
-	).Scan(&user.ID, &user.Nickname)
+func GetUserIDFromRequest(db *sql.DB, r *http.Request) (User, error) {
+	var user User
+
+	cookie, err := r.Cookie("session_token")
 	if err != nil {
+		return user, ErrNoSession
+	}
+
+	token := strings.TrimSpace(cookie.Value)
+	if token == "" {
+		return user, ErrNoSession
+	}
+
+	query := `
+		SELECT s.user_id, u.nickname
+		FROM sessions s
+		JOIN users u ON s.user_id = u.id
+		WHERE s.token = ? AND s.expires_at > ?
+	`
+
+	err = db.QueryRow(query, token, time.Now()).Scan(&user.ID, &user.Nickname)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return user, ErrInvalidSession
+		}
 		return user, err
 	}
 

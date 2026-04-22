@@ -39,7 +39,7 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 			backend.WriteJSONError(w, http.StatusBadRequest, "something went wrong. Please try again.")
 			return
 		}
-		if !emailrg.MatchString(req.Email) {
+		if !emailrg.MatchString(strings.TrimSpace(req.Email)) {
 			backend.WriteJSONError(w, http.StatusBadRequest, "invalid email")
 			return
 		}
@@ -104,6 +104,8 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 			Expires:  exp,
 			Path:     "/",
 			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
 		})
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)

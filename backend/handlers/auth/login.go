@@ -5,11 +5,12 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
+	"forum/backend"
 	"log"
 	"net/http"
 	"strings"
 	"time"
-	"forum/backend"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -131,6 +132,8 @@ func Logout(db *sql.DB) http.HandlerFunc {
 			MaxAge:   -1,
 			Path:     "/",
 			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
 		})
 
 		w.Header().Set("Content-Type", "application/json")
