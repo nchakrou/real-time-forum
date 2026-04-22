@@ -32,15 +32,15 @@ func main() {
 	http.HandleFunc("/frontend/", func(w http.ResponseWriter, r *http.Request) {
 		infos, err := os.Stat(r.URL.Path[1:])
 		if err != nil {
-			http.ServeFile(w, r, "frontend/index.html")
+			http.Error(w,"internal server error", http.StatusInternalServerError)
 			return
 		}
 		if infos.IsDir() {
-			http.ServeFile(w, r, "frontend/index.html")
+		http.Error(w,"internal server error", http.StatusInternalServerError)
 			return
 		}
 		if os.IsNotExist(err) {
-			http.ServeFile(w, r, "frontend/index.html")
+			http.Error(w,"internal server error", http.StatusInternalServerError)
 			return
 		}
 
