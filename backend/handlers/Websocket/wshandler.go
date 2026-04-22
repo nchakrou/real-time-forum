@@ -14,8 +14,9 @@ import (
 )
 
 type Hub struct {
-	Clients map[int][]*websocket.Conn
-	mu      sync.Mutex
+	Clients      map[int][]*websocket.Conn
+	mu           sync.Mutex
+	UserSessions map[int]string
 }
 type request struct {
 	Type      string `json:"type"`
@@ -50,14 +51,39 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 			return true
 		},
 	}
+	hub.Clients = make(map[int][]*websocket.Conn)
+	hub.UserSessions = make(map[int]string)
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		user, err := backend.GetUserIDFromRequest(db, r)
-		userid := user.ID
 		if err != nil {
 			log.Println("Error getting user ID from request:", err)
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
+		userid := user.ID
+		c, err := r.Cookie("session_token")
+
+		hub.mu.Lock()
+		Session := hub.UserSessions[userid]
+		clients := hub.Clients[userid]
+
+		shouldClose := Session != "" && Session != c.Value
+
+		if shouldClose {
+			delete(hub.Clients, userid)
+		}
+
+		hub.mu.Unlock()
+
+		if shouldClose {
+			for _, conn := range clients {
+				conn.Close()
+			}
+		}
+		hub.mu.Lock()
+		hub.UserSessions[userid] = c.Value
+		hub.mu.Unlock()
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			log.Println("Error upgrading to WebSocket:", err)
@@ -77,7 +103,6 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 			isEmpty := len(hub.Clients[userid]) == 0
 			if isEmpty {
 				delete(hub.Clients, userid)
-
 			}
 			hub.mu.Unlock()
 			if isEmpty {
@@ -146,8 +171,8 @@ func (h *Hub) Leave(db *sql.DB, user backend.User) {
 				Type: "user_offline",
 				From: user.Nickname,
 			})
-		if err != nil {
-				log.Println("Error sending message:", err)	
+			if err != nil {
+				log.Println("Error sending message:", err)
 			}
 		}(conn)
 	}

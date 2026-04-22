@@ -50,8 +50,11 @@ ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       console.log("Message from server:", data);
       if (data.type === "error") {
-        if (data.code === 404 || data.code === 500) {
+        if (data.code === 404) {
           ErrorPage();
+          return;
+        } else if (data.code === 500) {
+          ErrorPage("Server error. Please try again later.", "500");
         } else {
           Popup.show(data.message);
         }
@@ -113,7 +116,10 @@ ws.onmessage = (event) => {
       }
     };
 
-    ws.onclose = () => console.log("Disconnected from WebSocket server");
+    ws.onclose = () => {
+      router("/login");
+      console.log("Disconnected from WebSocket server");
+    };
     ws.onerror = (error) => {
       Popup.show("Error connecting");
       reject(error);
