@@ -79,19 +79,8 @@ ws.onmessage = (event) => {
           }
           break;
         case "join":
-          if (window.location.pathname !== "/chat") {
-            handleJoin(data);
-          } else {
-            const userItem = document.querySelector(
-              `.user-item[data-username="${data.from}"]`,
-            );
-            if (userItem) {
-              userItem.classList.add("online");
-            } else {
-              console.log("user not found", data.from);
-              ChatUsers([{ target: data.from }]);
-            }
-          }
+            ws.send(JSON.stringify({ type: "get_chat_users" }));
+            ws.send(JSON.stringify({ type: "online_users" }));
           break;
         case "typing":
           handleTypingStatus(data);
@@ -162,40 +151,6 @@ function handlePrivateMessage(data) {
   } else {
     showNotification(data, true);
   }
-}
-
-function handleJoin(data) {
-  const users = document.getElementsByClassName("online-users")[0];
-  const msg = users.querySelector("p");
-  let list;
-  if (msg) {
-    msg.remove();
-    list = document.createElement("div");
-    list.className = "list-users";
-    users.appendChild(list);
-  }
-  const flag = document.querySelector(
-    `.user-item[data-username="${data.from}"]`,
-  );
-  if (flag) return;
-
-  const userItem = document.createElement("div");
-  userItem.className = "user-item";
-  userItem.dataset.username = data.from;
-  userItem.addEventListener("click", () => {
-    router(`/chat?username=${data.from}`);
-  });
-
-  const avatar = data.from.charAt(0).toUpperCase();
-  userItem.innerHTML = `
-    <div class="user-item-avatar">${avatar}</div>
-    <div class="user-item-info">
-      <span class="user-item-name">${data.from}</span>
-    </div>`;
-  if (!list) {
-    list = document.getElementsByClassName("list-users")[0];
-  }
-  list.prepend(userItem);
 }
 
 function handleTypingStatus(data) {

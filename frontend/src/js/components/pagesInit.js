@@ -121,9 +121,10 @@ export function OnlineUsers(users) {
   usersContainer.appendChild(listUsers);
 }
 
-export function ChatUsers(chats) {
+export function ChatUsers(chats) {  
   const usersContainer = document.querySelector(".users");
   if (!usersContainer) return;
+  usersContainer.innerHTML = ""
   if (document.getElementById("no-chats")) {
     document.getElementById("no-chats").remove();
   }
@@ -140,13 +141,6 @@ export function ChatUsers(chats) {
     return;
   }
 
-  if (!chats || chats.length === 0) {
-    const noChats = document.createElement("p");
-    noChats.style.marginTop = "20px";
-    noChats.textContent = "No conversations yet";
-    usersContainer.appendChild(noChats);
-    return;
-  }
   let listUsers;
   if (!users) {
     listUsers = document.createElement("div");
