@@ -14,7 +14,6 @@ export function pagesInit(path = "/") {
   ProfileDropdown();
   populateProfile();
   headerButtons();
-  renderStoredNotifications();
   restoreUnreadDots();
 
   if (path === "/chat") {

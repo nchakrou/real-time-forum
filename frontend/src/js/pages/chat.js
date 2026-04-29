@@ -147,61 +147,96 @@ function handleActiveChat(tagername) {
   );
 }
 function sentBtn() {
+  const messageInput = document.getElementById("chat-message-input");
+  const sendBtn = document.getElementById("chat-send-btn");
+
+  if (!messageInput || !sendBtn) return;
+
+  // Prevent duplicate listeners if sentBtn() is called more than once
+  if (messageInput.dataset.typingBound === "1") return;
+  messageInput.dataset.typingBound = "1";
+
   let typingTimeout = null;
   let isTyping = false;
-  const messageInput = document.getElementById("chat-message-input");
+  let lastTypingTarget = "";
+
+  const getTarget = () => {
+    const el = document.getElementById("active-chat-name");
+    return el ? el.textContent.trim() : "";
+  };
+
+  const sendTyping = (target) => {
+    if (!target || !ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({ type: "typing", target }));
+  };
+
+  const sendStopTyping = (target) => {
+    if (!target || !ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({ type: "stop_typing", target }));
+  };
+
+  const stopTypingNow = () => {
+    if (typingTimeout) {
+      clearTimeout(typingTimeout);
+      typingTimeout = null;
+    }
+    if (isTyping && lastTypingTarget) {
+      sendStopTyping(lastTypingTarget);
+    }
+    isTyping = false;
+    lastTypingTarget = "";
+  };
 
   messageInput.addEventListener("input", () => {
-    const target = document.getElementById("active-chat-name").textContent;
+    const target = getTarget();
+    if (!target) return;
 
     if (!isTyping) {
       isTyping = true;
-      ws.send(
-        JSON.stringify({
-          type: "typing",
-          target: target,
-        }),
-      );
+      lastTypingTarget = target;
+      sendTyping(target);
+    } else if (lastTypingTarget && lastTypingTarget !== target) {
+      // switched chat while typing
+      sendStopTyping(lastTypingTarget);
+      lastTypingTarget = target;
+      sendTyping(target);
     }
 
-    if (typingTimeout) {
-      clearTimeout(typingTimeout);
-    }
-
+    if (typingTimeout) clearTimeout(typingTimeout);
     typingTimeout = setTimeout(() => {
+      if (isTyping && lastTypingTarget) {
+        sendStopTyping(lastTypingTarget);
+      }
       isTyping = false;
-      ws.send(
-        JSON.stringify({
-          type: "stop_typing",
-          target: target,
-        }),
-      );
+      lastTypingTarget = "";
+      typingTimeout = null;
     }, 2000);
   });
 
-  document.getElementById("chat-send-btn").addEventListener("click", () => {
+  messageInput.addEventListener("blur", stopTypingNow);
+
+  window.addEventListener("beforeunload", stopTypingNow);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stopTypingNow();
+  });
+
+  sendBtn.addEventListener("click", () => {
     const message = messageInput.value;
     if (!message.trim()) return;
 
-    if (isTyping) {
-      isTyping = false;
-      clearTimeout(typingTimeout);
-      const target = document.getElementById("active-chat-name").textContent;
-      ws.send(
-        JSON.stringify({
-          type: "stop_typing",
-          target: target,
-        }),
-      );
-    }
+    stopTypingNow();
+
+    const target = getTarget();
     ws.send(
       JSON.stringify({
         type: "message",
-        target: document.getElementById("active-chat-name").textContent,
-        message: message,
+        target,
+        message,
       }),
     );
+
     messageInput.value = "";
+
     const chatViewport = document.getElementById("chat-viewport");
     const messageDiv = document.createElement("div");
     messageDiv.classList.add("Mymessage");

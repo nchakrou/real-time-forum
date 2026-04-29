@@ -17,6 +17,8 @@ type Hub struct {
 	Clients      map[int][]*websocket.Conn
 	mu           sync.Mutex
 	UserSessions map[int]string
+	TypingByConn map[*websocket.Conn]map[int]bool
+	TypingCount  map[int]map[int]int
 }
 type request struct {
 	Type      string `json:"type"`
@@ -53,7 +55,12 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 	}
 	hub.Clients = make(map[int][]*websocket.Conn)
 	hub.UserSessions = make(map[int]string)
-
+	if hub.TypingByConn == nil {
+		hub.TypingByConn = make(map[*websocket.Conn]map[int]bool)
+	}
+	if hub.TypingCount == nil {
+		hub.TypingCount = make(map[int]map[int]int)
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		user, err := backend.GetUserIDFromRequest(db, r)
 		if err != nil {
@@ -93,22 +100,13 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 		defer func() {
 			conn.Close()
 			hub.mu.Lock()
-			conns := hub.Clients[userid]
-			for i, c := range conns {
-				if c == conn {
-					hub.Clients[userid] = append(conns[:i], conns[i+1:]...)
-					break
-				}
-			}
 			isEmpty := len(hub.Clients[userid]) == 0
-			if isEmpty {
-				delete(hub.Clients, userid)
-			}
 			hub.mu.Unlock()
+
 			if isEmpty {
+				hub.ClearTypingForConn(db, conn, userid, user.Nickname)
 				hub.Leave(db, user)
 			}
-			log.Printf("User %d disconnected", userid)
 		}()
 		hub.mu.Lock()
 		hub.Clients[userid] = append(hub.Clients[userid], conn)
@@ -139,9 +137,9 @@ func WsHandler(db *sql.DB, hub *Hub) http.HandlerFunc {
 			case "get_chat_users":
 				hub.GetChatUsers(db, userid, conn)
 			case "typing":
-				hub.SendTypingStatus(db, userid, req.Target, user.Nickname, true)
+				hub.HandleTypingEvent(db, conn, userid, req.Target, user.Nickname, true)
 			case "stop_typing":
-				hub.SendTypingStatus(db, userid, req.Target, user.Nickname, false)
+				hub.HandleTypingEvent(db, conn, userid, req.Target, user.Nickname, false)
 			case "logout":
 				hub.mu.Lock()
 				conns := append([]*websocket.Conn(nil), hub.Clients[userid]...)

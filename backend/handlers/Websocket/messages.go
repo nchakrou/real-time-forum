@@ -145,10 +145,8 @@ func (hub *Hub) SendPrivateMessage(myconn *websocket.Conn, db *sql.DB, fromID in
 	now := time.Now().Format(time.RFC3339)
 
 	hub.mu.Lock()
-	toconns := make([]*websocket.Conn, len(hub.Clients[toID]))
-	fromconns := make([]*websocket.Conn, len(hub.Clients[fromID]))
-	copy(toconns, hub.Clients[toID])
-	copy(fromconns, hub.Clients[fromID])
+	toconns := append([]*websocket.Conn(nil), hub.Clients[toID]...)
+	fromconns := append([]*websocket.Conn(nil), hub.Clients[fromID]...)
 	hub.mu.Unlock()
 
 	for i, conn := range toconns {
@@ -158,20 +156,19 @@ func (hub *Hub) SendPrivateMessage(myconn *websocket.Conn, db *sql.DB, fromID in
 			Message:   message,
 			CreatedAt: now,
 		}
-
 		if err := conn.WriteJSON(resp); err != nil {
-			log.Println("Error sending message:", err)
-			myconn.Close()
-
-			hub.mu.Lock()
-			clients := hub.Clients[toID]
-			if i < len(clients) {
-				hub.Clients[toID] = append(clients[:i], clients[i+1:]...)
-			}
-			hub.mu.Unlock()
+			log.Println("WS write error:", err)
 			continue
 		}
+		hub.mu.Lock()
+		clients := hub.Clients[toID]
+		if i < len(clients) {
+			hub.Clients[toID] = append(clients[:i], clients[i+1:]...)
+		}
+		hub.mu.Unlock()
+
 	}
+
 	for i, conn := range fromconns {
 		if conn == myconn {
 			continue
@@ -185,17 +182,17 @@ func (hub *Hub) SendPrivateMessage(myconn *websocket.Conn, db *sql.DB, fromID in
 		}
 
 		if err := conn.WriteJSON(resp); err != nil {
-			log.Println("Error sending message:", err)
-			myconn.Close()
-
-			hub.mu.Lock()
-			clients := hub.Clients[fromID]
-			if i < len(clients) {
-				hub.Clients[fromID] = append(clients[:i], clients[i+1:]...)
-			}
-			hub.mu.Unlock()
+			log.Println("WS write error:", err)
 			continue
 		}
+
+		hub.mu.Lock()
+		clients := hub.Clients[fromID]
+		if i < len(clients) {
+			hub.Clients[fromID] = append(clients[:i], clients[i+1:]...)
+		}
+		hub.mu.Unlock()
+		
 	}
 }
 
@@ -298,17 +295,15 @@ WHERE sender_id = ? AND receiver_id = ? AND type = 'message'
 		return
 	}
 }
-
-func (hub *Hub) SendTypingStatus(db *sql.DB, fromID int, toUsername string, fromUsername string, isTyping bool) {
+func (hub *Hub) SendTypingStatus(db *sql.DB, fromID int, toUsername, fromUsername string, isTyping bool) {
 	toID, err := TargetID(db, toUsername)
-	if err != nil {
-		log.Println("Error getting target ID:", err)
+	if err != nil || fromID == toID {
 		return
 	}
-	if fromID == toID {
-		return
-	}
+	hub.sendTypingToUserID(toID, fromUsername, isTyping)
+}
 
+func (hub *Hub) sendTypingToUserID(toID int, fromUsername string, isTyping bool) {
 	resp := TypingResponse{
 		Type:     "typing",
 		From:     fromUsername,
@@ -323,6 +318,108 @@ func (hub *Hub) SendTypingStatus(db *sql.DB, fromID int, toUsername string, from
 	for _, conn := range conns {
 		if err := conn.WriteJSON(resp); err != nil {
 			log.Println("Error sending typing status:", err)
+		}
+	}
+}
+
+func (hub *Hub) HandleTypingEvent(db *sql.DB, conn *websocket.Conn, fromID int, toUsername, fromUsername string, isTyping bool) {
+	toID, err := TargetID(db, toUsername)
+	if err != nil || fromID == toID {
+		return
+	}
+
+	shouldBroadcast := false
+	broadcastValue := false
+
+	hub.mu.Lock()
+
+	if hub.TypingByConn[conn] == nil {
+		hub.TypingByConn[conn] = make(map[int]bool)
+	}
+	if hub.TypingCount[fromID] == nil {
+		hub.TypingCount[fromID] = make(map[int]int)
+	}
+
+	connTargets := hub.TypingByConn[conn]
+	fromCounts := hub.TypingCount[fromID]
+
+	if isTyping {
+		if !connTargets[toID] {
+			connTargets[toID] = true
+			fromCounts[toID]++
+			if fromCounts[toID] == 1 {
+				shouldBroadcast = true
+				broadcastValue = true
+			}
+		}
+	} else {
+		if connTargets[toID] {
+			delete(connTargets, toID)
+
+			if fromCounts[toID] > 0 {
+				fromCounts[toID]--
+			}
+			if fromCounts[toID] <= 0 {
+				delete(fromCounts, toID)
+				shouldBroadcast = true
+				broadcastValue = false
+			}
+
+			if len(connTargets) == 0 {
+				delete(hub.TypingByConn, conn)
+			}
+			if len(fromCounts) == 0 {
+				delete(hub.TypingCount, fromID)
+			}
+		}
+	}
+
+	hub.mu.Unlock()
+
+	if shouldBroadcast {
+		hub.sendTypingToUserID(toID, fromUsername, broadcastValue)
+	}
+}
+
+func (hub *Hub) ClearTypingForConn(db *sql.DB, conn *websocket.Conn, fromID int, fromUsername string) {
+	hub.mu.Lock()
+	targetsSet := hub.TypingByConn[conn]
+	targetIDs := make([]int, 0, len(targetsSet))
+	for toID := range targetsSet {
+		targetIDs = append(targetIDs, toID)
+	}
+	hub.mu.Unlock()
+
+	for _, toID := range targetIDs {
+		shouldBroadcast := false
+
+		hub.mu.Lock()
+		connTargets := hub.TypingByConn[conn]
+		fromCounts := hub.TypingCount[fromID]
+
+		if connTargets != nil && connTargets[toID] {
+			delete(connTargets, toID)
+
+			if fromCounts != nil {
+				if fromCounts[toID] > 0 {
+					fromCounts[toID]--
+				}
+				if fromCounts[toID] <= 0 {
+					delete(fromCounts, toID)
+					shouldBroadcast = true
+				}
+				if len(fromCounts) == 0 {
+					delete(hub.TypingCount, fromID)
+				}
+			}
+			if len(connTargets) == 0 {
+				delete(hub.TypingByConn, conn)
+			}
+		}
+		hub.mu.Unlock()
+
+		if shouldBroadcast {
+			hub.sendTypingToUserID(toID, fromUsername, false)
 		}
 	}
 }
