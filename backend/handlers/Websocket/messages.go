@@ -148,7 +148,6 @@ func (hub *Hub) SendPrivateMessage(myconn *websocket.Conn, db *sql.DB, fromID in
 	toconns := append([]*websocket.Conn(nil), hub.Clients[toID]...)
 	fromconns := append([]*websocket.Conn(nil), hub.Clients[fromID]...)
 	hub.mu.Unlock()
-
 	for i, conn := range toconns {
 		resp := Msg{
 			Type:      "private_message",
@@ -157,18 +156,17 @@ func (hub *Hub) SendPrivateMessage(myconn *websocket.Conn, db *sql.DB, fromID in
 			CreatedAt: now,
 		}
 		if err := conn.WriteJSON(resp); err != nil {
+
 			log.Println("WS write error:", err)
-			continue
+			hub.mu.Lock()
+			clients := hub.Clients[toID]
+			if i < len(clients) {
+				hub.Clients[toID] = append(clients[:i], clients[i+1:]...)
+			}
+			hub.mu.Unlock()
 		}
-		hub.mu.Lock()
-		clients := hub.Clients[toID]
-		if i < len(clients) {
-			hub.Clients[toID] = append(clients[:i], clients[i+1:]...)
-		}
-		hub.mu.Unlock()
 
 	}
-
 	for i, conn := range fromconns {
 		if conn == myconn {
 			continue
@@ -180,19 +178,18 @@ func (hub *Hub) SendPrivateMessage(myconn *websocket.Conn, db *sql.DB, fromID in
 			Message:   message,
 			CreatedAt: now,
 		}
-
 		if err := conn.WriteJSON(resp); err != nil {
 			log.Println("WS write error:", err)
+
+			hub.mu.Lock()
+			clients := hub.Clients[fromID]
+			if i < len(clients) {
+				hub.Clients[fromID] = append(clients[:i], clients[i+1:]...)
+			}
+			hub.mu.Unlock()
+
 			continue
 		}
-
-		hub.mu.Lock()
-		clients := hub.Clients[fromID]
-		if i < len(clients) {
-			hub.Clients[fromID] = append(clients[:i], clients[i+1:]...)
-		}
-		hub.mu.Unlock()
-		
 	}
 }
 
@@ -295,6 +292,7 @@ WHERE sender_id = ? AND receiver_id = ? AND type = 'message'
 		return
 	}
 }
+
 func (hub *Hub) SendTypingStatus(db *sql.DB, fromID int, toUsername, fromUsername string, isTyping bool) {
 	toID, err := TargetID(db, toUsername)
 	if err != nil || fromID == toID {
